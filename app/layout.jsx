@@ -1,6 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
 import Image from "next/image";
+import ScrollToTopButton from "../components/ScrollToTopButton";
 
 export const metadata = {
   title: "Conciergerie by Isa - Services de conciergerie à Paris",
@@ -73,6 +74,8 @@ export default function RootLayout({ children }) {
             </p>
           </div>
         </footer>
+        {/* Floating “back to top” button */}
+        <ScrollToTopButton />
       </body>
     </html>
   );
