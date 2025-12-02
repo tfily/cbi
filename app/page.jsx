@@ -6,6 +6,7 @@ import {
   getSiteInfo,
 } from "../lib/wordpress";
 import ContactForm from "../components/ContactForm";
+import { Suspense } from "react";
 
 function cleanHtml(str) {
   return str.replace(/<[^>]+>/g, "");
@@ -238,7 +239,16 @@ export default async function HomePage() {
             confirmer la prestation et le tarif.
           </p>
 
-          <ContactForm services={services} />
+          <Suspense
+            fallback={
+              <p className="text-sm text-neutral-400">
+                Chargement du formulaire de contact...
+              </p>
+            }
+          >
+            <ContactForm services={services} />
+          </Suspense>
+
         </div>
       </section>
     </main>
