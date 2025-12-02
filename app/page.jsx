@@ -131,7 +131,9 @@ export default async function HomePage() {
                     Voir le détail
                   </a>
                   <a
-                    href={`/#contact?service=${encodeURIComponent(service.slug)}`}
+                    href={`/?service=${encodeURIComponent(
+                      service.slug
+                    )}#contact`}
                     className="inline-flex text-sm font-semibold text-neutral-600 hover:underline"
                   >
                     Demander ce service
@@ -248,7 +250,6 @@ export default async function HomePage() {
           >
             <ContactForm services={services} />
           </Suspense>
-
         </div>
       </section>
     </main>

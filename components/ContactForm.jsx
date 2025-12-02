@@ -15,21 +15,15 @@ export default function ContactForm({ services }) {
     () =>
       (services || []).map((s) => ({
         slug: s.slug,
-        value: cleanHtml(s.title?.rendered || ""),
         label: cleanHtml(s.title?.rendered || ""),
       })),
     [services]
   );
 
-  const defaultValue =
-    selectedSlug && options.length
-      ? options.find((o) => o.slug === selectedSlug)?.value || ""
-      : "";
-
   return (
     <form
       className="space-y-4"
-      action="https://formspree.io/f/xldylwnp"
+      action="https://formspree.io/f/your-form-id"
       method="POST"
     >
       <div className="grid md:grid-cols-2 gap-4">
@@ -67,12 +61,12 @@ export default function ContactForm({ services }) {
           {options.length ? (
             <select
               name="service_type"
-              defaultValue={defaultValue}
+              defaultValue={selectedSlug}
               className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="">Choisir un service</option>
               {options.map((o) => (
-                <option key={o.slug} value={o.value}>
+                <option key={o.slug} value={o.slug}>
                   {o.label}
                 </option>
               ))}

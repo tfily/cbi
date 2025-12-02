@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
         {/* NAVBAR */}
         <header className="border-b border-neutral-200 bg-white/80 backdrop-blur">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-            {/* Logo + title */}
+            {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
               <Image
                 src="/logo-cbi.png"
@@ -57,7 +57,6 @@ export default function RootLayout({ children }) {
         {/* FOOTER */}
         <footer className="border-t border-neutral-200 bg-white">
           <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Footer logo */}
             <div className="flex items-center gap-2">
               <Image
                 src="/logo-cbi.png"
@@ -69,7 +68,6 @@ export default function RootLayout({ children }) {
                 © {new Date().getFullYear()} Conciergerie by Isa
               </span>
             </div>
-
             <p className="text-[11px] text-neutral-500 text-center sm:text-right">
               Zones : Paris 6e, 7e, 15e, 17e et 92 - services assurés et conformes RGPD.
             </p>
