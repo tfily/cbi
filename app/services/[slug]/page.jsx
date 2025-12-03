@@ -59,13 +59,12 @@ export default async function ServicePage({ params }) {
         dangerouslySetInnerHTML={{ __html: service.content.rendered }}
       />
 
-    <a
-      href={`/?service=${encodeURIComponent(params.slug)}#contact`}
-      className="inline-flex items-center px-5 py-2.5 rounded-full bg-amber-700 text-sm font-semibold text-white hover:bg-amber-800"
-    >
-      Demander ce service
-    </a>
-
+      <a
+        href={`/?service=${encodeURIComponent(params.slug)}#contact`}
+        className="inline-flex items-center px-5 py-2.5 rounded-full bg-amber-700 text-sm font-semibold text-white hover:bg-amber-800"
+      >
+        Demander ce service
+      </a>
     </main>
   );
 }

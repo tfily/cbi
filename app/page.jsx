@@ -7,6 +7,7 @@ import {
 } from "../lib/wordpress";
 import ContactForm from "../components/ContactForm";
 import { Suspense } from "react";
+import Image from "next/image";
 
 function cleanHtml(str) {
   return str.replace(/<[^>]+>/g, "");
@@ -21,31 +22,41 @@ export default async function HomePage() {
     getSiteInfo().catch(() => ({ name: "Conciergerie by Isa", description: "" })),
   ]);
 
+  // Choose a random hero image among several lifestyle variants
+  const heroImages = [
+    { src: "/hero-conciergerie-1.png", alt: "Conciergerie, organisation du quotidien" },
+    { src: "/hero-conciergerie-2.png", alt: "Services de conciergerie à domicile" },
+    { src: "/hero-conciergerie-3.png", alt: "Accompagnement personnalisé et services sur-mesure" },
+  ];
+  const randomHero = heroImages[Math.floor(Math.random() * heroImages.length)];
+
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
-      {/* Hero uses WP site title and tagline */}
+      {/* HERO SECTION */}
       <section className="bg-gradient-to-b from-amber-100 to-neutral-50 border-b border-neutral-200">
-        <div className="max-w-5xl mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row gap-10 items-center">
-          <div className="flex-1">
+        <div className="max-w-5xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+          {/* LEFT: TEXT */}
+          <div>
             <p className="uppercase tracking-[0.25em] text-xs text-amber-700 mb-4">
               {siteInfo.name}
             </p>
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              Votre sérénité, notre tranquillité
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
+              Votre sérénité, <br /> notre priorité
             </h1>
-            <p className="text-neutral-700 mb-6">
+            <p className="text-neutral-700 mb-6 text-sm leading-relaxed">
               {siteInfo.description ||
                 "Services de conciergerie personnalisés pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos déplacements et loisirs."}
             </p>
+
             <div className="flex flex-wrap gap-3">
               <a
-                href="#contact"
+                href="/#contact"
                 className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-amber-700 text-white text-sm font-semibold shadow-sm hover:bg-amber-800 transition"
               >
                 Demander un service
               </a>
               <a
-                href="#subscriptions"
+                href="/#subscriptions"
                 className="inline-flex items-center justify-center px-5 py-3 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold hover:bg-amber-50 transition"
               >
                 Découvrir les abonnements
@@ -53,33 +64,46 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Info box: display one random info_box */}
-          <div className="flex-1 max-w-sm w-full">
-            <div className="rounded-3xl bg-white shadow-lg border border-neutral-100 p-6 space-y-4">
-              <h2 className="text-lg font-semibold">Informations clés</h2>
-              {infoBoxes.length === 0 ? (
-                <p className="text-sm text-neutral-500">
-                  Ajoutez des infos clés dans WordPress pour les afficher ici.
-                </p>
-              ) : (
-                (() => {
-                  const random = infoBoxes[Math.floor(Math.random() * infoBoxes.length)];
-                  return (
-                    <ul className="text-sm text-neutral-700 space-y-3">
-                      <li key={random.id}>
-                        <span className="font-medium">
-                          {cleanHtml(random.title.rendered)}:{" "}
-                        </span>
-                        <span
-                          className="text-neutral-700"
-                          dangerouslySetInnerHTML={{ __html: random.content.rendered }}
-                        />
-                      </li>
-                    </ul>
-                  );
-                })()
-              )}
-            </div>
+          {/* RIGHT: LIFESTYLE IMAGE */}
+          <div className="relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-lg border border-neutral-200">
+            <Image
+              src={randomHero.src}
+              alt={randomHero.alt}
+              fill
+              className="object-cover object-center"
+              priority
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Info box: display one random info_box */}
+      <section className="max-w-5xl mx-auto px-4 pt-0 pb-8 md:pb-10">
+        <div className="max-w-xl">
+          <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 p-4 space-y-2">
+            <h2 className="text-sm font-semibold">Informations clés</h2>
+            {infoBoxes.length === 0 ? (
+              <p className="text-xs text-neutral-500">
+                Ajoutez des infos clés dans WordPress pour les afficher ici.
+              </p>
+            ) : (
+              (() => {
+                const random = infoBoxes[Math.floor(Math.random() * infoBoxes.length)];
+                return (
+                  <ul className="text-xs text-neutral-700 space-y-1.5">
+                    <li key={random.id}>
+                      <span className="font-medium">
+                        {cleanHtml(random.title.rendered)}:{" "}
+                      </span>
+                      <span
+                        className="text-neutral-700"
+                        dangerouslySetInnerHTML={{ __html: random.content.rendered }}
+                      />
+                    </li>
+                  </ul>
+                );
+              })()
+            )}
           </div>
         </div>
       </section>
@@ -94,7 +118,7 @@ export default async function HomePage() {
             </p>
           </div>
           <a
-            href="#contact"
+            href="/#contact"
             className="hidden md:inline-flex text-sm font-semibold text-amber-800 hover:underline"
           >
             Nous confier une demande
