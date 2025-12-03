@@ -12,11 +12,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="fr">
-      <body className="bg-neutral-50 text-neutral-900">
+      <body className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900">
+        
         {/* NAVBAR */}
         <header className="border-b border-neutral-200 bg-white/80 backdrop-blur">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-            {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
               <Image
                 src="/logo-cbi.png"
@@ -26,24 +26,12 @@ export default function RootLayout({ children }) {
                 priority
               />
             </Link>
-
-            {/* Navigation */}
             <nav className="hidden sm:flex text-sm gap-4">
-              <a href="#services" className="hover:text-amber-800">
-                Services
-              </a>
-              <a href="#subscriptions" className="hover:text-amber-800">
-                Abonnements
-              </a>
-              <a href="#news" className="hover:text-amber-800">
-                Actualités
-              </a>
-              <a href="#contact" className="hover:text-amber-800">
-                Contact
-              </a>
+              <a href="#services" className="hover:text-amber-800">Services</a>
+              <a href="#subscriptions" className="hover:text-amber-800">Abonnements</a>
+              <a href="#news" className="hover:text-amber-800">Actualités</a>
+              <a href="#contact" className="hover:text-amber-800">Contact</a>
             </nav>
-
-            {/* CTA */}
             <a
               href="#contact"
               className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-700 text-xs font-semibold text-white hover:bg-amber-800"
@@ -53,7 +41,10 @@ export default function RootLayout({ children }) {
           </div>
         </header>
 
-        {children}
+        {/* MAIN CONTENT (pushes footer down) */}
+        <div className="flex-1">
+          {children}
+        </div>
 
         {/* FOOTER */}
         <footer className="border-t border-neutral-200 bg-white">
@@ -74,7 +65,7 @@ export default function RootLayout({ children }) {
             </p>
           </div>
         </footer>
-        {/* Floating “back to top” button */}
+
         <ScrollToTopButton />
       </body>
     </html>
