@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
               <Image
-                src="/hero-conciergerie-1.png"
+                src="/logo-cbi.png"
                 alt="Conciergerie by Isa"
                 width={140}
                 height={48}
