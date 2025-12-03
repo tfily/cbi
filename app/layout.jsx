@@ -63,7 +63,7 @@ export default function RootLayout({ children }) {
           <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Image
-                src="/hero-conciergerie-1.png"
+                src="/logo-cbi.png"
                 alt="Conciergerie by Isa"
                 width={120}
                 height={40}
