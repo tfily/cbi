@@ -33,83 +33,111 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
       {/* HERO SECTION */}
-      <section className="bg-gradient-to-b from-amber-100 to-neutral-50 border-b border-neutral-200">
-        <div className="max-w-5xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
-          {/* LEFT: TEXT */}
-          <div>
-            <p className="uppercase tracking-[0.25em] text-xs text-amber-700 mb-4">
-              {siteInfo.name}
-            </p>
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
-              Votre sérénité, <br /> notre priorité
-            </h1>
-            <p className="text-neutral-700 mb-6 text-sm leading-relaxed">
-              {siteInfo.description ||
-                "Services de conciergerie personnalisés pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos déplacements et loisirs."}
-            </p>
+      <section className="relative overflow-hidden border-b border-neutral-200">
 
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="/#contact"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-amber-700 text-white text-sm font-semibold shadow-sm hover:bg-amber-800 transition"
-              >
-                Demander un service
-              </a>
-              <a
-                href="/#subscriptions"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold hover:bg-amber-50 transition"
-              >
-                Découvrir les abonnements
-              </a>
-            </div>
-          </div>
+  {/* Background image (centered, scaled, visible) */}
+  <div
+    className="absolute inset-0 z-0 bg-no-repeat bg-center bg-contain"
+    style={{
+      backgroundImage: "url('/hero-bg.png')",
+      backgroundSize: "contain",
+    }}
+  />
 
-          {/* RIGHT: LIFESTYLE IMAGE */}
-          <div className="relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-lg border border-neutral-200">
-            <Image
-              src={randomHero.src}
-              alt={randomHero.alt}
-              fill
-              className="object-cover object-center"
-              priority
-            />
-          </div>
-        </div>
+  {/* Warm beige gradient overlay */}
+  <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#f3e0bc]/95 via-[#e0c38f]/85 to-[#cba26a]/90" />
+
+  {/* CONTENT */}
+  <div className="relative z-20 max-w-5xl mx-auto px-4 py-24 md:py-36 grid md:grid-cols-2 gap-12 items-center min-h-[420px] md:min-h-[520px]">
+
+    {/* LEFT COLUMN — HEADLINE + CTA */}
+    <div>
+      <p className="uppercase tracking-[0.25em] text-xs text-amber-700 mb-4">
+        {siteInfo.name}
+      </p>
+
+      <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-neutral-900">
+        Votre sérénité, <br /> notre priorité
+      </h1>
+
+      <p className="text-neutral-800 mb-8 text-sm md:text-base max-w-xl leading-relaxed">
+        {siteInfo.description ||
+          "Services de conciergerie personnalisés pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos déplacements et loisirs."}
+      </p>
+
+      <div className="flex flex-wrap gap-4">
+        <a
+          href="/#contact"
+          className="inline-flex items-center px-5 py-3 rounded-full bg-amber-700 text-white text-sm font-semibold shadow-sm hover:bg-amber-800 transition"
+        >
+          Demander un service
+        </a>
+        <a
+          href="/#subscriptions"
+          className="inline-flex items-center px-5 py-3 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold hover:bg-amber-50 transition"
+        >
+          Découvrir les abonnements
+        </a>
+      </div>
+    </div>
+
+    {/* RIGHT COLUMN — LIFESTYLE IMAGE */}
+    <div className="relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-lg border border-neutral-200 bg-white/40">
+      <Image
+        src="/hero-conciergerie-1.png"  // put your mixed-ethnicity image here
+        alt="Conciergerie personnalisée à domicile"
+        fill
+        className="object-cover object-center"
+        priority
+      />
+    </div>
+
+  </div>
       </section>
 
-      {/* Info box: display one random info_box */}
-      <section className="max-w-5xl mx-auto px-4 pt-0 pb-8 md:pb-10">
-        <div className="max-w-xl">
-          <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 p-4 space-y-2">
-            <h2 className="text-sm font-semibold">Informations clés</h2>
-            {infoBoxes.length === 0 ? (
-              <p className="text-xs text-neutral-500">
-                Ajoutez des infos clés dans WordPress pour les afficher ici.
-              </p>
-            ) : (
-              (() => {
-                const random = infoBoxes[Math.floor(Math.random() * infoBoxes.length)];
-                return (
-                  <ul className="text-xs text-neutral-700 space-y-1.5">
-                    <li key={random.id}>
-                      <span className="font-medium">
-                        {cleanHtml(random.title.rendered)}:{" "}
-                      </span>
-                      <span
-                        className="text-neutral-700"
-                        dangerouslySetInnerHTML={{ __html: random.content.rendered }}
-                      />
-                    </li>
-                  </ul>
-                );
-              })()
-            )}
-          </div>
+      {/* Info box with full-width city silhouette background (no overlap) */}
+      <section className="relative overflow-hidden max-w-5xl mx-auto px-4 mt-20 py-14 min-h-[55vh]">
+
+        {/* Background silhouette fills the section, clipped inside it */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0 bg-no-repeat bg-center bg-cover opacity-25 grayscale"
+          style={{
+            backgroundImage: "url('/info-bg.png')",
+          }}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 max-w-xl mx-auto space-y-4 text-neutral-900">
+          <h2 className="text-lg font-semibold">Informations clés</h2>
+
+          {infoBoxes.length === 0 ? (
+            <p className="text-sm text-neutral-700">
+              Ajoutez des infos clés dans WordPress pour les afficher ici.
+            </p>
+          ) : (
+            (() => {
+              const random = infoBoxes[Math.floor(Math.random() * infoBoxes.length)];
+              return (
+                <ul className="text-sm text-neutral-800 space-y-2">
+                  <li key={random.id}>
+                    <span className="font-medium">
+                      {cleanHtml(random.title.rendered)}:{" "}
+                    </span>
+                    <span
+                      className="text-neutral-800"
+                      dangerouslySetInnerHTML={{ __html: random.content.rendered }}
+                    />
+                  </li>
+                </ul>
+              );
+            })()
+          )}
         </div>
+
       </section>
 
       {/* Services from WordPress */}
-      <section id="services" className="max-w-5xl mx-auto px-4 py-12 md:py-16">
+      <section id="services" className="max-w-5xl mx-auto my-auto px-4 py-12 md:py-16">
         <div className="flex items-baseline justify-between gap-4 mb-8">
           <div>
             <h2 className="text-2xl font-bold mb-2">Nos services de conciergerie</h2>
