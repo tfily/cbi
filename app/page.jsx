@@ -96,7 +96,7 @@ export default async function HomePage() {
       </section>
 
       {/* Info box with full-width city silhouette background (no overlap) */}
-      <section className="relative overflow-hidden max-w-5xl mx-auto px-4 mt-20 py-14 min-h-[55vh]">
+      <section className="relative overflow-hidden max-w-5xl mx-auto px-4 mt-20 py-14 min-h-[50vh]">
 
         {/* Background silhouette fills the section, clipped inside it */}
         <div
@@ -203,7 +203,7 @@ export default async function HomePage() {
         className="bg-white border-y border-neutral-200 py-12 md:py-16"
       >
         <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-2">Formules d abonnement</h2>
+          <h2 className="text-2xl font-bold mb-2">Formules d'abonnement</h2>
           <p className="text-sm text-neutral-600 mb-8">
             Maîtrisez votre budget grâce à des abonnements flexibles et transparents.
           </p>
