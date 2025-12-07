@@ -32,68 +32,51 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden border-b border-neutral-200">
-
-  {/* Background image (centered, scaled, visible) */}
+      {/* HERO SECTION – Option A: no side image, centered content */}
+<section className="relative overflow-hidden border-b border-neutral-200">
+  {/* Background image */}
   <div
     className="absolute inset-0 z-0 bg-no-repeat bg-center bg-contain"
     style={{
       backgroundImage: "url('/hero-bg.png')",
-      backgroundSize: "contain",
     }}
   />
 
-  {/* Warm beige gradient overlay */}
+  {/* Gradient overlay */}
   <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#f3e0bc]/95 via-[#e0c38f]/85 to-[#cba26a]/90" />
 
-  {/* CONTENT */}
-  <div className="relative z-20 max-w-5xl mx-auto px-4 py-24 md:py-36 grid md:grid-cols-2 gap-12 items-center min-h-[420px] md:min-h-[520px]">
+  {/* Content */}
+  <div className="relative z-20 max-w-3xl mx-auto px-4 py-24 md:py-32 text-center">
+    <p className="uppercase tracking-[0.25em] text-xs text-amber-700 mb-4">
+      {siteInfo.name}
+    </p>
 
-    {/* LEFT COLUMN — HEADLINE + CTA */}
-    <div>
-      <p className="uppercase tracking-[0.25em] text-xs text-amber-700 mb-4">
-        {siteInfo.name}
-      </p>
+    <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-neutral-900">
+      Votre sérénité, <br /> notre priorité
+    </h1>
 
-      <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-neutral-900">
-        Votre sérénité, <br /> notre priorité
-      </h1>
+    <p className="text-neutral-800 mb-8 text-sm md:text-base leading-relaxed">
+      {siteInfo.description ||
+        "Services de conciergerie personnalisés pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos déplacements et loisirs."}
+    </p>
 
-      <p className="text-neutral-800 mb-8 text-sm md:text-base max-w-xl leading-relaxed">
-        {siteInfo.description ||
-          "Services de conciergerie personnalisés pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos déplacements et loisirs."}
-      </p>
-
-      <div className="flex flex-wrap gap-4">
-        <a
-          href="/#contact"
-          className="inline-flex items-center px-5 py-3 rounded-full bg-amber-700 text-white text-sm font-semibold shadow-sm hover:bg-amber-800 transition"
-        >
-          Demander un service
-        </a>
-        <a
-          href="/#subscriptions"
-          className="inline-flex items-center px-5 py-3 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold hover:bg-amber-50 transition"
-        >
-          Découvrir les abonnements
-        </a>
-      </div>
+    <div className="flex flex-wrap justify-center gap-4">
+      <a
+        href="/#contact"
+        className="inline-flex items-center px-5 py-3 rounded-full bg-amber-700 text-white text-sm font-semibold shadow-sm hover:bg-amber-800 transition"
+      >
+        Demander un service
+      </a>
+      <a
+        href="/#subscriptions"
+        className="inline-flex items-center px-5 py-3 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold hover:bg-amber-50 transition"
+      >
+        Découvrir les abonnements
+      </a>
     </div>
-
-    {/* RIGHT COLUMN — LIFESTYLE IMAGE */}
-    <div className="relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-lg border border-neutral-200 bg-white/40">
-      <Image
-        src="/hero-conciergerie-1.png"  // put your mixed-ethnicity image here
-        alt="Conciergerie personnalisée à domicile"
-        fill
-        className="object-cover object-center"
-        priority
-      />
-    </div>
-
   </div>
-      </section>
+</section>
+
 
       {/* Info box with full-width city silhouette background (no overlap) */}
       <section className="relative overflow-hidden max-w-5xl mx-auto px-4 mt-20 py-14 min-h-[50vh]">
@@ -159,40 +142,60 @@ export default async function HomePage() {
           </p>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            {services.map((service) => (
-              <article
-                key={service.id}
-                className="group rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm flex flex-col justify-between hover:border-amber-300 hover:shadow-md transition"
-              >
-                <a href={`/services/${service.slug}`} className="block">
-                  <h3 className="text-lg font-semibold mb-2 group-hover:text-amber-800">
-                    {cleanHtml(service.title.rendered)}
-                  </h3>
-                  <div
-                    className="text-sm text-neutral-700 mb-2 prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: service.excerpt?.rendered || service.content.rendered,
-                    }}
-                  />
-                </a>
-                <div className="mt-4 flex gap-4">
-                  <a
-                    href={`/services/${service.slug}`}
-                    className="inline-flex text-sm font-semibold text-amber-800 hover:underline"
-                  >
-                    Voir le détail
-                  </a>
-                  <a
-                    href={`/?service=${encodeURIComponent(
-                      service.slug
-                    )}#contact`}
-                    className="inline-flex text-sm font-semibold text-neutral-600 hover:underline"
-                  >
-                    Demander ce service
-                  </a>
-                </div>
-              </article>
-            ))}
+            {services.map((service) => {
+  // Get featured image from WP REST _embed
+  const media =
+    service._embedded?.["wp:featuredmedia"] &&
+    service._embedded["wp:featuredmedia"][0];
+  const imgUrl =
+    media?.media_details?.sizes?.medium?.source_url || media?.source_url || null;
+
+  return (
+    <article
+      key={service.id}
+      className="group rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm flex flex-col justify-between hover:border-amber-300 hover:shadow-md transition"
+    >
+      {/* Top: image if available */}
+      {imgUrl && (
+        <div className="relative w-full h-40 mb-4 rounded-xl overflow-hidden bg-neutral-100">
+          {/* if you already import Image from next/image at top */}
+          <img
+            src={imgUrl}
+            alt={cleanHtml(service.title.rendered)}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
+      <a href={`/services/${service.slug}`} className="block">
+        <h3 className="text-lg font-semibold mb-2 group-hover:text-amber-800">
+          {cleanHtml(service.title.rendered)}
+        </h3>
+        <div
+          className="text-sm text-neutral-700 mb-2 prose prose-sm max-w-none"
+          dangerouslySetInnerHTML={{
+            __html: service.excerpt?.rendered || service.content.rendered,
+          }}
+        />
+      </a>
+      <div className="mt-4 flex gap-4">
+        <a
+          href={`/services/${service.slug}`}
+          className="inline-flex text-sm font-semibold text-amber-800 hover:underline"
+        >
+          Voir le détail
+        </a>
+        <a
+          href={`/?service=${encodeURIComponent(service.slug)}#contact`}
+          className="inline-flex text-sm font-semibold text-neutral-600 hover:underline"
+        >
+          Demander ce service
+        </a>
+      </div>
+    </article>
+  );
+            })}
+
           </div>
         )}
       </section>
