@@ -7,9 +7,10 @@ function cleanHtml(str) {
   return str.replace(/<[^>]+>/g, "");
 }
 
-export default function ContactForm({ services }) {
+export default function ContactForm({ services = [], subscriptions = [] }) {
   const searchParams = useSearchParams();
   const selectedSlug = searchParams.get("service") || "";
+  const selectedSubscription = searchParams.get("subscription") || "";
 
   const options = useMemo(
     () =>
@@ -18,6 +19,16 @@ export default function ContactForm({ services }) {
         label: cleanHtml(s.title?.rendered || ""),
       })),
     [services]
+  );
+
+  const subscriptionOptions = useMemo(
+    () =>
+      (subscriptions || []).map((sub) => ({
+        slug: sub.slug,
+        label: cleanHtml(sub.title?.rendered || ""),
+        price: sub.meta?.cbi_price || "",
+      })),
+    [subscriptions]
   );
 
   return (
@@ -81,6 +92,27 @@ export default function ContactForm({ services }) {
           )}
         </div>
       </div>
+
+      {subscriptionOptions.length > 0 && (
+        <div>
+          <label className="block text-xs font-medium mb-1">
+            Formule d abonnement (optionnel)
+          </label>
+          <select
+            name="subscription_plan"
+            defaultValue={selectedSubscription}
+            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Je souhaite discuter d une formule</option>
+            {subscriptionOptions.map((sub) => (
+              <option key={sub.slug} value={sub.slug}>
+                {sub.label}
+                {sub.price ? ` – ${sub.price}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label className="block text-xs font-medium mb-1">Votre demande</label>

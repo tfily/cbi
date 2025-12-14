@@ -217,34 +217,64 @@ export default async function HomePage() {
               Ajoutez des abonnements dans WordPress pour les afficher ici.
             </p>
           ) : (
-            <div className="grid md:grid-cols-4 gap-4">
-              {subscriptions.map((sub) => (
-                <div
-                  key={sub.id}
-                  className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 flex flex-col justify-between"
-                >
-                  <div>
-                    <h3 className="text-base font-semibold mb-1">
-                      {cleanHtml(sub.title.rendered)}
-                    </h3>
-                    {sub.excerpt?.rendered && (
-                      <div
-                        className="text-xs text-neutral-600 mb-3 prose prose-xs max-w-none"
-                        dangerouslySetInnerHTML={{ __html: sub.excerpt.rendered }}
-                      />
+            <div className="grid gap-5 md:grid-cols-3">
+              {subscriptions.map((sub, index) => {
+                const highlight = index === 1;
+                return (
+                  <div
+                    key={sub.id}
+                    className={`relative flex h-full flex-col justify-between rounded-3xl border border-neutral-200 p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
+                      highlight
+                        ? "bg-gradient-to-br from-amber-50 via-white to-white border-amber-200"
+                        : "bg-neutral-50"
+                    }`}
+                  >
+                    {highlight && (
+                      <span className="absolute -top-3 right-5 inline-flex items-center rounded-full bg-amber-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
+                        Populaire
+                      </span>
                     )}
-                    {!sub.excerpt?.rendered && sub.content?.rendered && (
-                      <div
-                        className="text-xs text-neutral-600 mb-3 prose prose-xs max-w-none"
-                        dangerouslySetInnerHTML={{ __html: sub.content.rendered }}
-                      />
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500 mb-2">
+                        {sub.meta?.cbi_frequency || "Formule"}
+                      </p>
+                      <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                        {cleanHtml(sub.title.rendered)}
+                      </h3>
+                      <p className="text-3xl font-bold text-amber-800 mb-4">
+                        {sub.meta?.cbi_price || "Sur devis"}
+                        <span className="text-sm font-medium text-neutral-500">
+                          {sub.meta?.cbi_unit ? ` / ${sub.meta.cbi_unit}` : ""}
+                        </span>
+                      </p>
+                      {sub.excerpt?.rendered && (
+                        <div
+                          className="text-xs text-neutral-600 mb-4 space-y-2 prose prose-xs max-w-none"
+                          dangerouslySetInnerHTML={{ __html: sub.excerpt.rendered }}
+                        />
+                      )}
+                      {!sub.excerpt?.rendered && sub.content?.rendered && (
+                        <div
+                          className="text-xs text-neutral-600 mb-4 space-y-2 prose prose-xs max-w-none"
+                          dangerouslySetInnerHTML={{ __html: sub.content.rendered }}
+                        />
+                      )}
+                    </div>
+                    {sub.slug && (
+                      <a
+                        href={`/?subscription=${encodeURIComponent(sub.slug)}#contact`}
+                        className={`mt-4 inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition ${
+                          highlight
+                            ? "bg-amber-700 text-white hover:bg-amber-800"
+                            : "border border-amber-700 text-amber-800 hover:bg-amber-50"
+                        }`}
+                      >
+                        {highlight ? "Je réserve cette formule" : "Choisir cette formule"}
+                      </a>
                     )}
                   </div>
-                  <p className="text-sm font-semibold text-amber-800">
-                    {sub.meta?.cbi_price || ""}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -305,7 +335,7 @@ export default async function HomePage() {
               </p>
             }
           >
-            <ContactForm services={services} />
+            <ContactForm services={services} subscriptions={subscriptions} />
           </Suspense>
         </div>
       </section>
