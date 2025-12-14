@@ -6,6 +6,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "backend.conciergeriebyisa.fr",
       },
+      {
+        protocol: "http",
+        hostname: "backend.conciergeriebyisa.fr",
+      },
     ],
   },
   eslint: {
