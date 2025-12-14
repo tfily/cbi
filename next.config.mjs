@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["cbi-ndoo.gt.tc"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "backend.conciergeriebyisa.fr",
+      },
+    ],
   },
   eslint: {
     ignoreDuringBuilds: true,
