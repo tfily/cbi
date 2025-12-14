@@ -158,11 +158,13 @@ export default async function HomePage() {
       {/* Top: image if available */}
       {imgUrl && (
         <div className="relative w-full h-40 mb-4 rounded-xl overflow-hidden bg-neutral-100">
-          {/* if you already import Image from next/image at top */}
-          <img
+          <Image
             src={imgUrl}
             alt={cleanHtml(service.title.rendered)}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover"
+            loading="lazy"
           />
         </div>
       )}
