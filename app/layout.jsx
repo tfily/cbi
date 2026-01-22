@@ -29,6 +29,9 @@ export default function RootLayout({ children }) {
 
             {/* Navigation */}
             <nav className="hidden sm:flex text-sm gap-4">
+              <Link href="/about" className="hover:text-amber-800">
+                A propos
+              </Link>
               <Link href="/#services" className="hover:text-amber-800">
                 Services
               </Link>
