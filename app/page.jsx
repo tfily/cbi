@@ -27,10 +27,16 @@ export default async function HomePage() {
     return (
       <main className="min-h-screen bg-neutral-50 text-neutral-900">
         <section className="relative overflow-hidden border-b border-neutral-200">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#f3e0bc]/95 via-[#e0c38f]/85 to-[#cba26a]/90" />
-          <div className="relative z-10 max-w-3xl mx-auto px-4 py-20 md:py-28 text-center space-y-6">
+          <div
+            className="absolute inset-0 z-0 bg-no-repeat bg-center bg-contain"
+            style={{
+              backgroundImage: "url('/hero-bg.png')",
+            }}
+          />
+          <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#f3e0bc]/95 via-[#e0c38f]/85 to-[#cba26a]/90" />
+          <div className="relative z-20 max-w-3xl mx-auto px-4 py-20 md:py-28 text-center space-y-6">
             <p className="uppercase tracking-[0.4em] text-[11px] text-amber-800 font-semibold">
-              Maintenance en cours!
+              Maintenance en cours !
             </p>
             {/* <p className="text-4xl md:text-5xl font-bold text-neutral-900">
               Site temporairement indisponible
