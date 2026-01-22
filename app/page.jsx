@@ -4,6 +4,7 @@ import {
   getSubscriptions,
   getInfoBoxes,
   getSiteInfo,
+  getAboutPage,
 } from "../lib/wordpress";
 import ContactForm from "../components/ContactForm";
 import { Suspense } from "react";
@@ -14,6 +15,37 @@ function cleanHtml(str) {
 }
 
 export default async function HomePage() {
+  const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
+
+  if (maintenanceMode) {
+    const aboutPage = await getAboutPage().catch(() => null);
+    const excerpt = aboutPage?.excerpt?.rendered || "";
+    const title = aboutPage?.title?.rendered
+      ? cleanHtml(aboutPage.title.rendered)
+      : "A propos";
+
+    return (
+      <main className="min-h-screen bg-neutral-50 text-neutral-900 flex items-center">
+        <section className="max-w-3xl mx-auto px-4 py-16 text-center space-y-6">
+          <p className="uppercase tracking-[0.25em] text-xs text-amber-700">
+            Maintenance
+          </p>
+          <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
+          {excerpt ? (
+            <div
+              className="text-sm md:text-base text-neutral-700 prose prose-sm max-w-none mx-auto"
+              dangerouslySetInnerHTML={{ __html: excerpt }}
+            />
+          ) : (
+            <p className="text-sm text-neutral-600">
+              Ajoutez un extrait a la page "A propos" pour l afficher ici.
+            </p>
+          )}
+        </section>
+      </main>
+    );
+  }
+
   const [services, news, subscriptions, infoBoxes, siteInfo] = await Promise.all([
     getServices().catch(() => []),
     getLatestNews(2).catch(() => []),
