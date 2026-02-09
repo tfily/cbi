@@ -192,6 +192,7 @@ export default async function HomePage() {
     service._embedded["wp:featuredmedia"][0];
   const imgUrl =
     media?.media_details?.sizes?.medium?.source_url || media?.source_url || null;
+  const priceLabel = service.meta?.cbi_price || service.meta?.price || "";
 
   return (
     <article
@@ -216,6 +217,9 @@ export default async function HomePage() {
         <h3 className="text-lg font-semibold mb-2 group-hover:text-amber-800">
           {cleanHtml(service.title.rendered)}
         </h3>
+        {priceLabel ? (
+          <p className="text-sm font-semibold text-amber-800 mb-2">{priceLabel}</p>
+        ) : null}
         <div
           className="text-sm text-neutral-700 mb-2 prose prose-sm max-w-none"
           dangerouslySetInnerHTML={{
