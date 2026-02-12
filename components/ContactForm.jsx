@@ -19,6 +19,7 @@ function parsePriceToMinor(value) {
 
 export default function ContactForm({ services = [], subscriptions = [] }) {
   const searchParams = useSearchParams();
+  const paymentsEnabled = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED !== "false";
   const selectedSlug = searchParams.get("service") || "";
   const selectedSubscription = searchParams.get("subscription") || "";
   const [serviceChoice, setServiceChoice] = useState(selectedSlug);
@@ -314,12 +315,16 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             <button
               type="button"
               onClick={handlePaySubscription}
-              disabled={isPaying || !selectedSubscriptionOption?.priceMinor}
-              className="inline-flex items-center px-4 py-2 rounded-full border border-neutral-500 text-xs font-semibold text-neutral-200 hover:bg-neutral-800/40 transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isPaying ? "Redirection..." : "Payer abonnement"}
-            </button>
-          </div>
+            disabled={
+              !paymentsEnabled ||
+              isPaying ||
+              !selectedSubscriptionOption?.priceMinor
+            }
+            className="inline-flex items-center px-4 py-2 rounded-full border border-neutral-500 text-xs font-semibold text-neutral-200 hover:bg-neutral-800/40 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isPaying ? "Redirection..." : "Payer abonnement"}
+          </button>
+        </div>
         </div>
       )}
 
@@ -349,7 +354,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           <button
             type="button"
             onClick={handlePayNow}
-            disabled={isPaying || !selectedService?.priceMinor}
+            disabled={!paymentsEnabled || isPaying || !selectedService?.priceMinor}
             className="inline-flex items-center px-5 py-2.5 rounded-full border border-amber-500 text-sm font-semibold text-amber-200 hover:bg-amber-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isPaying ? "Redirection..." : "Payer maintenant"}

@@ -26,6 +26,12 @@ function buildReturnUrl(orderId) {
 
 export async function POST(request) {
   try {
+    if (process.env.PAYMENTS_ENABLED === "false") {
+      return NextResponse.json(
+        { error: "Payments are currently disabled." },
+        { status: 403 }
+      );
+    }
     const body = await request.json();
     const {
       serviceName,
