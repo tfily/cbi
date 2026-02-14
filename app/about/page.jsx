@@ -87,14 +87,14 @@ export default async function AboutPage() {
               </a>
             </div>
           </div>
-          <div className="relative h-64 md:h-80 rounded-3xl overflow-hidden border border-amber-100 shadow-lg bg-white/80">
+          <div className="relative h-64 md:h-80 rounded-3xl overflow-hidden border border-amber-100 shadow-lg bg-gradient-to-br from-amber-800 via-white to-white/50">
             {heroImage ? (
               <Image
                 src={heroImage}
                 alt={title}
                 fill
                 sizes="(max-width: 768px) 100vw, 40vw"
-                className="object-cover"
+                className="object-contain"
                 priority
               />
             ) : (
