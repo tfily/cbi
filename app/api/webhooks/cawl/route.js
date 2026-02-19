@@ -4,6 +4,19 @@ import { updateWooOrder } from "../../../../lib/woocommerce";
 
 export const runtime = "nodejs";
 
+function resolveRequestBaseUrl(request) {
+  const origin = request.headers.get("origin");
+  if (origin) return origin;
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return "";
+}
+
 function extractMerchantReference(event) {
   return (
     event?.payment?.references?.merchantReference ||
@@ -72,7 +85,8 @@ export async function POST(request) {
       headers[key.toLowerCase()] = value;
     }
 
-    const helper = getCawlWebhooksHelper();
+    const requestBase = resolveRequestBaseUrl(request);
+    const helper = getCawlWebhooksHelper(requestBase);
     const event = await helper.unmarshal(rawBody, headers);
 
     const merchantReference = extractMerchantReference(event);

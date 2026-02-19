@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getCawlClient,
   buildHostedCheckoutRedirect,
-  getCawlMerchantId,
+  getCawlMerchantIdForBaseUrl,
   getCawlWebhookUrl,
   getCawlRuntimeConfig,
 } from "../../../../lib/cawl";
@@ -45,7 +45,8 @@ function buildReturnUrl(request, orderId) {
 
 export async function POST(request) {
   try {
-    const cawlRuntime = getCawlRuntimeConfig();
+    const requestBase = resolveRequestBaseUrl(request);
+    const cawlRuntime = getCawlRuntimeConfig(requestBase);
     const debugRuntimeConfig = {
       nodeEnv: process.env.NODE_ENV,
       cawlEnv: cawlRuntime.cawlMode,
@@ -142,8 +143,8 @@ export async function POST(request) {
 
     const order = await createWooOrder(orderPayload);
 
-    const client = getCawlClient();
-    const merchantId = getCawlMerchantId();
+    const client = getCawlClient(requestBase);
+    const merchantId = getCawlMerchantIdForBaseUrl(requestBase);
     if (!merchantId) {
       return NextResponse.json(
         { error: "Missing CAWL_MERCHANT_ID." },
@@ -177,7 +178,7 @@ export async function POST(request) {
       },
     };
 
-    const webhookUrl = getCawlWebhookUrl();
+    const webhookUrl = getCawlWebhookUrl(requestBase);
     if (webhookUrl) {
       hostedCheckoutRequest.feedbacks = {
         webhooksUrls: [webhookUrl],
