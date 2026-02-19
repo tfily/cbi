@@ -44,17 +44,17 @@ function buildReturnUrl(request, orderId) {
 }
 
 export async function POST(request) {
-  try {
-    const requestBase = resolveRequestBaseUrl(request);
-    const cawlRuntime = getCawlRuntimeConfig(requestBase);
-    const debugRuntimeConfig = {
-      nodeEnv: process.env.NODE_ENV,
-      cawlEnv: cawlRuntime.cawlMode,
-      cawlApiHost: cawlRuntime.cawlApiHost,
-      merchantId: cawlRuntime.merchantId || "",
-      paymentsEnabled: process.env.PAYMENTS_ENABLED !== "false",
-    };
+  const requestBase = resolveRequestBaseUrl(request);
+  const cawlRuntime = getCawlRuntimeConfig(requestBase);
+  const debugRuntimeConfig = {
+    nodeEnv: process.env.NODE_ENV,
+    cawlEnv: cawlRuntime.cawlMode,
+    cawlApiHost: cawlRuntime.cawlApiHost,
+    merchantId: cawlRuntime.merchantId || "",
+    paymentsEnabled: process.env.PAYMENTS_ENABLED !== "false",
+  };
 
+  try {
     if (process.env.CHECKOUT_DEBUG === "true") {
       console.info("[CAWL] checkout runtime config:", debugRuntimeConfig);
     }
