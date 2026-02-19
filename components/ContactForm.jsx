@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 function cleanHtml(str) {
   return str.replace(/<[^>]+>/g, "");
@@ -17,13 +17,91 @@ function parsePriceToMinor(value) {
   return Math.round(numeric * 100);
 }
 
+function extractPackEntries(meta) {
+  if (!meta) return [];
+  const entries = [];
+
+  const fromStructured = meta.cbi_pack_prices;
+  if (fromStructured) {
+    try {
+      const parsed =
+        typeof fromStructured === "string" ? JSON.parse(fromStructured) : fromStructured;
+      if (Array.isArray(parsed)) {
+        parsed.forEach((item) => {
+          const size = Number(item?.size || item?.pack || item?.quantity);
+          const price = item?.price || item?.value || "";
+          if (!Number.isNaN(size) && size > 0 && price) {
+            entries.push({ size, priceLabel: String(price) });
+          }
+        });
+      } else if (parsed && typeof parsed === "object") {
+        Object.entries(parsed).forEach(([key, value]) => {
+          const size = Number(String(key).replace(/\D+/g, ""));
+          if (!Number.isNaN(size) && size > 0 && value) {
+            entries.push({ size, priceLabel: String(value) });
+          }
+        });
+      }
+    } catch {
+      // Ignore malformed JSON
+    }
+  }
+
+  Object.entries(meta).forEach(([key, value]) => {
+    if (!value) return;
+    const patterns = [
+      /^cbi_price_pack_(\d+)$/i,
+      /^cbi_pack_(\d+)_price$/i,
+      /^cbi_price_(\d+)x?$/i,
+      /^price_pack_(\d+)$/i,
+      /^pack_(\d+)_price$/i,
+    ];
+    for (const pattern of patterns) {
+      const match = key.match(pattern);
+      if (match) {
+        const size = Number(match[1]);
+        if (!Number.isNaN(size) && size > 1) {
+          entries.push({ size, priceLabel: String(value) });
+        }
+        break;
+      }
+    }
+  });
+
+  const uniq = new Map();
+  for (const entry of entries) {
+    const id = `pack${entry.size}`;
+    if (!uniq.has(id)) {
+      uniq.set(id, {
+        mode: id,
+        size: entry.size,
+        label: `Pack ${entry.size}`,
+        priceLabel: entry.priceLabel,
+        amountMinor: parsePriceToMinor(entry.priceLabel),
+      });
+    }
+  }
+
+  return [...uniq.values()]
+    .filter((item) => item.amountMinor)
+    .sort((a, b) => a.size - b.size);
+}
+
 export default function ContactForm({ services = [], subscriptions = [] }) {
   const searchParams = useSearchParams();
   const paymentsEnabled = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED !== "false";
   const selectedSlug = searchParams.get("service") || "";
   const selectedSubscription = searchParams.get("subscription") || "";
+  const selectedPriceMode = searchParams.get("price_mode") || "";
+  const selectedDate = searchParams.get("scheduled_date") || "";
+  const selectedTimeSlot = searchParams.get("time_slot") || "";
   const [serviceChoice, setServiceChoice] = useState(selectedSlug);
   const [subscriptionChoice, setSubscriptionChoice] = useState(selectedSubscription);
+  const [servicePricingMode, setServicePricingMode] = useState(
+    selectedPriceMode || "unit"
+  );
+  const [scheduledDate, setScheduledDate] = useState(selectedDate);
+  const [timeSlot, setTimeSlot] = useState(selectedTimeSlot);
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +115,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         label: cleanHtml(s.title?.rendered || ""),
         priceLabel: s.meta?.cbi_price || s.meta?.price || "",
         priceMinor: parsePriceToMinor(s.meta?.cbi_price || s.meta?.price),
+        packOptions: extractPackEntries(s.meta),
       })),
     [services]
   );
@@ -60,31 +139,74 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     () => subscriptionOptions.find((o) => o.slug === subscriptionChoice),
     [subscriptionOptions, subscriptionChoice]
   );
+  const selectedServicePricing = useMemo(() => {
+    if (!selectedService) return null;
+    if (servicePricingMode !== "unit") {
+      const packOption = (selectedService.packOptions || []).find(
+        (opt) => opt.mode === servicePricingMode
+      );
+      if (packOption) {
+        return {
+          mode: packOption.mode,
+          label: packOption.priceLabel || selectedService.priceLabel,
+          amountMinor: packOption.amountMinor,
+        };
+      }
+    }
+    return {
+      mode: "unit",
+      label: selectedService.priceLabel,
+      amountMinor: selectedService.priceMinor,
+    };
+  }, [selectedService, servicePricingMode]);
+
+  useEffect(() => {
+    const availableModes = new Set([
+      "unit",
+      ...((selectedService?.packOptions || []).map((p) => p.mode)),
+    ]);
+    if (!availableModes.has(servicePricingMode)) {
+      setServicePricingMode("unit");
+    }
+  }, [selectedService, servicePricingMode]);
+
+  function getBookingFromForm() {
+    const form = formRef.current;
+    if (!form) return null;
+    const data = new FormData(form);
+    return {
+      name: String(data.get("name") || "").trim(),
+      email: String(data.get("email") || "").trim(),
+      phone: String(data.get("phone") || "").trim(),
+      scheduledDate: String(data.get("scheduled_date") || "").trim(),
+      timeSlot: String(data.get("time_slot") || "").trim(),
+      message: String(data.get("message") || "").trim(),
+    };
+  }
 
   async function handlePayNow() {
     setPayError("");
     const payable = selectedService;
-    if (!payable?.priceMinor) {
+    if (!selectedServicePricing?.amountMinor) {
       setPayError(
         "Ce service n a pas de tarif configure dans WordPress. Merci de nous contacter."
       );
       return;
     }
 
-    const form = formRef.current;
-    if (!form) return;
+    const booking = getBookingFromForm();
+    if (!booking) return;
 
-    const data = new FormData(form);
-    const name = String(data.get("name") || "").trim();
-    const email = String(data.get("email") || "").trim();
-    const phone = String(data.get("phone") || "").trim();
-
-    if (!email) {
+    if (!booking.email) {
       setPayError("Merci de renseigner votre email avant de payer.");
       return;
     }
+    if (!booking.scheduledDate) {
+      setPayError("Merci de choisir une date d intervention avant de payer.");
+      return;
+    }
 
-    const [firstName, ...rest] = name.split(" ").filter(Boolean);
+    const [firstName, ...rest] = booking.name.split(" ").filter(Boolean);
     const lastName = rest.join(" ");
 
     setIsPaying(true);
@@ -95,12 +217,17 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         body: JSON.stringify({
           serviceName: payable.label,
           serviceSlug: payable.slug,
-          amountMinor: payable.priceMinor,
+          itemType: "service",
+          amountMinor: selectedServicePricing.amountMinor,
+          pricingOption: selectedServicePricing.mode,
+          pricingLabel: selectedServicePricing.label || "",
           currency: "EUR",
-          customerEmail: email,
+          customerEmail: booking.email,
           customerFirstName: firstName || "",
           customerLastName: lastName || "",
-          customerPhone: phone || "",
+          customerPhone: booking.phone || "",
+          scheduledDate: booking.scheduledDate,
+          timeSlot: booking.timeSlot || "",
         }),
       });
 
@@ -131,20 +258,19 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       return;
     }
 
-    const form = formRef.current;
-    if (!form) return;
+    const booking = getBookingFromForm();
+    if (!booking) return;
 
-    const data = new FormData(form);
-    const name = String(data.get("name") || "").trim();
-    const email = String(data.get("email") || "").trim();
-    const phone = String(data.get("phone") || "").trim();
-
-    if (!email) {
+    if (!booking.email) {
       setPayError("Merci de renseigner votre email avant de payer.");
       return;
     }
+    if (!booking.scheduledDate) {
+      setPayError("Merci de choisir une date d intervention avant de payer.");
+      return;
+    }
 
-    const [firstName, ...rest] = name.split(" ").filter(Boolean);
+    const [firstName, ...rest] = booking.name.split(" ").filter(Boolean);
     const lastName = rest.join(" ");
 
     setIsPaying(true);
@@ -155,12 +281,16 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         body: JSON.stringify({
           serviceName: payable.label,
           serviceSlug: payable.slug,
+          subscriptionSlug: payable.slug,
+          itemType: "subscription",
           amountMinor: payable.priceMinor,
           currency: "EUR",
-          customerEmail: email,
+          customerEmail: booking.email,
           customerFirstName: firstName || "",
           customerLastName: lastName || "",
-          customerPhone: phone || "",
+          customerPhone: booking.phone || "",
+          scheduledDate: booking.scheduledDate,
+          timeSlot: booking.timeSlot || "",
         }),
       });
 
@@ -186,17 +316,18 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     setSubmitStatus("");
     setPayError("");
 
-    const form = formRef.current;
-    if (!form) return;
-
-    const data = new FormData(form);
+    const booking = getBookingFromForm();
+    if (!booking) return;
     const payload = {
-      name: String(data.get("name") || "").trim(),
-      email: String(data.get("email") || "").trim(),
-      phone: String(data.get("phone") || "").trim(),
+      name: booking.name,
+      email: booking.email,
+      phone: booking.phone,
       serviceSlug: serviceChoice || "",
       subscriptionSlug: subscriptionChoice || "",
-      message: String(data.get("message") || "").trim(),
+      scheduledDate: booking.scheduledDate,
+      timeSlot: booking.timeSlot,
+      message: booking.message,
+      pricingOption: selectedServicePricing?.mode || "unit",
     };
 
     if (!payload.email || !payload.message) {
@@ -218,9 +349,11 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       }
 
       setSubmitStatus("Merci, votre demande a bien été envoyée.");
-      form.reset();
+      formRef.current?.reset();
       setServiceChoice("");
       setSubscriptionChoice("");
+      setScheduledDate("");
+      setTimeSlot("");
     } catch (error) {
       setSubmitStatus(error?.message || "Une erreur est survenue.");
     } finally {
@@ -257,6 +390,35 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
 
       <div className="grid md:grid-cols-2 gap-4">
         <div>
+          <label className="block text-xs font-medium mb-1">
+            Date d intervention
+          </label>
+          <input
+            type="date"
+            name="scheduled_date"
+            required
+            value={scheduledDate}
+            onChange={(event) => setScheduledDate(event.target.value)}
+            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1">
+            Créneau (optionnel)
+          </label>
+          <input
+            type="text"
+            name="time_slot"
+            placeholder="Ex: 09:00-12:00"
+            value={timeSlot}
+            onChange={(event) => setTimeSlot(event.target.value)}
+            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
           <label className="block text-xs font-medium mb-1">Téléphone</label>
           <input
             type="tel"
@@ -267,20 +429,43 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         <div>
           <label className="block text-xs font-medium mb-1">Type de service</label>
           {options.length ? (
-            <select
-              name="service_type"
-              value={serviceChoice}
-              onChange={(event) => setServiceChoice(event.target.value)}
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="">Choisir un service</option>
-              {options.map((o) => (
-                <option key={o.slug} value={o.slug}>
-                  {o.label}
-                  {o.priceLabel ? ` – ${o.priceLabel}` : ""}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                name="service_type"
+                value={serviceChoice}
+                onChange={(event) => setServiceChoice(event.target.value)}
+                className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="">Choisir un service</option>
+                {options.map((o) => (
+                  <option key={o.slug} value={o.slug}>
+                    {o.label}
+                    {o.priceLabel ? ` – ${o.priceLabel}` : ""}
+                  </option>
+                ))}
+              </select>
+              {selectedService?.packOptions?.length ? (
+                <div className="mt-3">
+                  <label className="block text-xs font-medium mb-1">Tarification</label>
+                  <select
+                    name="service_pricing"
+                    value={servicePricingMode}
+                    onChange={(event) => setServicePricingMode(event.target.value)}
+                    className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="unit">
+                      Tarif unitaire{selectedService.priceLabel ? ` - ${selectedService.priceLabel}` : ""}
+                    </option>
+                    {selectedService.packOptions.map((pack) => (
+                      <option key={pack.mode} value={pack.mode}>
+                        {pack.label}
+                        {pack.priceLabel ? ` - ${pack.priceLabel}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+            </>
           ) : (
             <input
               type="text"
@@ -315,16 +500,16 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             <button
               type="button"
               onClick={handlePaySubscription}
-            disabled={
-              !paymentsEnabled ||
-              isPaying ||
-              !selectedSubscriptionOption?.priceMinor
-            }
-            className="inline-flex items-center px-4 py-2 rounded-full border border-neutral-500 text-xs font-semibold text-neutral-200 hover:bg-neutral-800/40 transition disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isPaying ? "Redirection..." : "Payer abonnement"}
-          </button>
-        </div>
+              disabled={
+                !paymentsEnabled ||
+                isPaying ||
+                !selectedSubscriptionOption?.priceMinor
+              }
+              className="inline-flex items-center px-4 py-2 rounded-full border border-neutral-500 text-xs font-semibold text-neutral-200 hover:bg-neutral-800/40 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isPaying ? "Redirection..." : "Payer abonnement"}
+            </button>
+          </div>
         </div>
       )}
 
@@ -354,7 +539,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           <button
             type="button"
             onClick={handlePayNow}
-            disabled={!paymentsEnabled || isPaying || !selectedService?.priceMinor}
+            disabled={!paymentsEnabled || isPaying || !selectedServicePricing?.amountMinor}
             className="inline-flex items-center px-5 py-2.5 rounded-full border border-amber-500 text-sm font-semibold text-amber-200 hover:bg-amber-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isPaying ? "Redirection..." : "Payer maintenant"}

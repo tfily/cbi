@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { getCawlClient, buildHostedCheckoutRedirect } from "../../../../lib/cawl";
+import {
+  getCawlClient,
+  buildHostedCheckoutRedirect,
+  getCawlMerchantId,
+  getCawlWebhookUrl,
+  getCawlRuntimeConfig,
+} from "../../../../lib/cawl";
 import { createWooOrder, updateWooOrder } from "../../../../lib/woocommerce";
 
 export const runtime = "nodejs";
@@ -14,18 +20,44 @@ function normalizeAmountToMinor(value) {
   return Math.round(numeric * 100);
 }
 
-function buildReturnUrl(orderId) {
+function resolveRequestBaseUrl(request) {
+  const origin = request.headers.get("origin");
+  if (origin) return origin;
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return "";
+}
+
+function buildReturnUrl(request, orderId) {
   const isDev = process.env.NODE_ENV !== "production";
-  const base =
-    process.env.APP_BASE_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (isDev ? "http://localhost:3000" : "");
+  const requestBase = resolveRequestBaseUrl(request);
+  const configuredBase =
+    process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "";
+  const base = requestBase || configuredBase || (isDev ? "http://localhost:3000" : "");
   if (!base) return "";
   return `${base.replace(/\/$/, "")}/payment/return?orderId=${orderId}`;
 }
 
 export async function POST(request) {
   try {
+    const cawlRuntime = getCawlRuntimeConfig();
+    const debugRuntimeConfig = {
+      nodeEnv: process.env.NODE_ENV,
+      cawlEnv: cawlRuntime.cawlMode,
+      cawlApiHost: cawlRuntime.cawlApiHost,
+      merchantId: cawlRuntime.merchantId || "",
+      paymentsEnabled: process.env.PAYMENTS_ENABLED !== "false",
+    };
+
+    if (process.env.CHECKOUT_DEBUG === "true") {
+      console.info("[CAWL] checkout runtime config:", debugRuntimeConfig);
+    }
+
     if (process.env.PAYMENTS_ENABLED === "false") {
       return NextResponse.json(
         { error: "Payments are currently disabled." },
@@ -36,6 +68,10 @@ export async function POST(request) {
     const {
       serviceName,
       serviceSlug,
+      subscriptionSlug,
+      itemType = "service",
+      pricingOption = "unit",
+      pricingLabel = "",
       amount,
       amountMinor,
       currency = "EUR",
@@ -43,6 +79,8 @@ export async function POST(request) {
       customerFirstName,
       customerLastName,
       customerPhone,
+      scheduledDate,
+      timeSlot,
     } = body || {};
 
     const amountMinorValue =
@@ -53,6 +91,12 @@ export async function POST(request) {
     if (!serviceName || !amountMinorValue || !customerEmail) {
       return NextResponse.json(
         { error: "Missing required fields." },
+        { status: 400 }
+      );
+    }
+    if (!scheduledDate) {
+      return NextResponse.json(
+        { error: "Missing scheduledDate." },
         { status: 400 }
       );
     }
@@ -85,7 +129,13 @@ export async function POST(request) {
       ],
       meta_data: [
         { key: "service_slug", value: serviceSlug || "" },
+        { key: "subscription_slug", value: subscriptionSlug || "" },
         { key: "service_name", value: serviceName },
+        { key: "item_type", value: itemType || "service" },
+        { key: "pricing_option", value: pricingOption || "unit" },
+        { key: "pricing_label", value: pricingLabel || "" },
+        { key: "scheduled_date", value: scheduledDate },
+        { key: "time_slot", value: timeSlot || "" },
         { key: "payment_provider", value: "CAWL" },
       ],
     };
@@ -93,7 +143,7 @@ export async function POST(request) {
     const order = await createWooOrder(orderPayload);
 
     const client = getCawlClient();
-    const merchantId = process.env.CAWL_MERCHANT_ID;
+    const merchantId = getCawlMerchantId();
     if (!merchantId) {
       return NextResponse.json(
         { error: "Missing CAWL_MERCHANT_ID." },
@@ -101,6 +151,7 @@ export async function POST(request) {
       );
     }
 
+    const returnUrl = buildReturnUrl(request, order.id);
     const hostedCheckoutRequest = {
       order: {
         amountOfMoney: {
@@ -122,13 +173,14 @@ export async function POST(request) {
       },
       hostedCheckoutSpecificInput: {
         locale: "fr_FR",
-        returnUrl: buildReturnUrl(order.id),
+        returnUrl,
       },
     };
 
-    if (process.env.CAWL_WEBHOOK_URL) {
+    const webhookUrl = getCawlWebhookUrl();
+    if (webhookUrl) {
       hostedCheckoutRequest.feedbacks = {
-        webhooksUrls: [process.env.CAWL_WEBHOOK_URL],
+        webhooksUrls: [webhookUrl],
       };
     }
 
@@ -137,13 +189,39 @@ export async function POST(request) {
       hostedCheckoutRequest
     );
 
+    const isCawlSuccess =
+      hostedCheckoutResponse?.isSuccess === undefined ||
+      hostedCheckoutResponse?.isSuccess === true;
     const hostedCheckout =
       hostedCheckoutResponse?.body || hostedCheckoutResponse || {};
+
+    if (!isCawlSuccess) {
+      const cawlError = hostedCheckoutResponse?.body || {};
+      await updateWooOrder(order.id, {
+        status: "failed",
+        meta_data: [
+          { key: "cawl_last_error", value: JSON.stringify(cawlError) },
+          { key: "cawl_last_status", value: String(hostedCheckoutResponse?.status || "") },
+        ],
+      }).catch(() => {});
+
+      return NextResponse.json(
+        {
+          error: "CAWL authorization failed for this merchant.",
+          details: cawlError,
+          runtime: process.env.CHECKOUT_DEBUG === "true" ? debugRuntimeConfig : undefined,
+          orderId: order.id,
+        },
+        { status: hostedCheckoutResponse?.status || 403 }
+      );
+    }
 
     const redirectUrl =
       hostedCheckout.redirectUrl ||
       buildHostedCheckoutRedirect(hostedCheckout?.partialRedirectUrl);
-    const isDev = process.env.NODE_ENV !== "production";
+    const exposeDebug =
+      process.env.NODE_ENV !== "production" ||
+      process.env.CHECKOUT_DEBUG === "true";
 
     await updateWooOrder(order.id, {
       meta_data: [
@@ -159,14 +237,17 @@ export async function POST(request) {
       redirectUrl,
       hostedCheckoutId: hostedCheckout?.hostedCheckoutId || null,
       partialRedirectUrl: hostedCheckout?.partialRedirectUrl || null,
-      rawHostedCheckout: isDev ? hostedCheckoutResponse : undefined,
+      rawHostedCheckout: exposeDebug ? hostedCheckoutResponse : undefined,
+      returnUrl: exposeDebug ? returnUrl : undefined,
       orderId: order.id,
     });
   } catch (error) {
     console.error("[CAWL] create checkout failed:", error);
-    const isDev = process.env.NODE_ENV !== "production";
+    const exposeDebug =
+      process.env.NODE_ENV !== "production" ||
+      process.env.CHECKOUT_DEBUG === "true";
     const details =
-      isDev && error
+      exposeDebug && error
         ? {
             message: error.message,
             name: error.name,
@@ -175,7 +256,11 @@ export async function POST(request) {
           }
         : undefined;
     return NextResponse.json(
-      { error: "Failed to create checkout.", details },
+      {
+        error: "Failed to create checkout.",
+        details,
+        runtime: process.env.CHECKOUT_DEBUG === "true" ? debugRuntimeConfig : undefined,
+      },
       { status: 500 }
     );
   }

@@ -1,9 +1,33 @@
 import { getServiceBySlug, getServiceSlugs } from "../../../lib/wordpress";
 import Link from "next/link";
 import Image from "next/image";
+import AvailabilityPanel from "../../../components/AvailabilityPanel";
 
 function cleanHtml(str) {
   return str.replace(/<[^>]+>/g, "");
+}
+
+function getPackPrices(meta) {
+  if (!meta) return [];
+  const packs = [];
+  Object.entries(meta).forEach(([key, value]) => {
+    if (!value) return;
+    const patterns = [
+      /^cbi_price_pack_(\d+)$/i,
+      /^cbi_pack_(\d+)_price$/i,
+      /^cbi_price_(\d+)x?$/i,
+      /^price_pack_(\d+)$/i,
+      /^pack_(\d+)_price$/i,
+    ];
+    for (const pattern of patterns) {
+      const match = key.match(pattern);
+      if (match) {
+        packs.push({ size: Number(match[1]), value: String(value) });
+        break;
+      }
+    }
+  });
+  return packs.filter((p) => p.size > 1).sort((a, b) => a.size - b.size);
 }
 
 export async function generateStaticParams() {
@@ -48,6 +72,8 @@ export default async function ServicePage({ params }) {
     media?.media_details?.sizes?.medium_large?.source_url ||
     media?.source_url ||
     null;
+  const unitPrice = service.meta?.cbi_price || service.meta?.price || "";
+  const packPrices = getPackPrices(service.meta);
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-16">
@@ -77,6 +103,15 @@ export default async function ServicePage({ params }) {
           {cleanHtml(service.title.rendered)}
         </h1>
 
+        {unitPrice ? (
+          <p className="text-sm font-semibold text-amber-800 mb-1">Tarif unitaire: {unitPrice}</p>
+        ) : null}
+        {packPrices.length > 0 ? (
+          <p className="text-sm font-semibold text-neutral-700 mb-4">
+            {packPrices.map((p) => `Pack ${p.size}: ${p.value}`).join(" · ")}
+          </p>
+        ) : null}
+
         {service.excerpt?.rendered && (
           <div
             className="text-sm text-neutral-600 mb-4 prose prose-sm max-w-none"
@@ -93,12 +128,15 @@ export default async function ServicePage({ params }) {
       </section>
 
       {/* CTA */}
-      <a
-        href={`/?service=${encodeURIComponent(params.slug)}#contact`}
-        className="inline-flex items-center px-5 py-2.5 rounded-full bg-amber-700 text-sm font-semibold text-white hover:bg-amber-800"
-      >
-        Demander ce service
-      </a>
+      <div className="space-y-6">
+        <AvailabilityPanel slug={params.slug} itemType="service" />
+        <a
+          href={`/?service=${encodeURIComponent(params.slug)}#contact`}
+          className="inline-flex items-center px-5 py-2.5 rounded-full bg-amber-700 text-sm font-semibold text-white hover:bg-amber-800"
+        >
+          Demander ce service
+        </a>
+      </div>
     </main>
   );
 }

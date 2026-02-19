@@ -40,6 +40,15 @@ function mapStatusToWoo(status) {
     [
       "CANCELLED",
       "CANCELED",
+      "ABORTED",
+      "STOPPED",
+      "EXPIRED",
+    ].includes(normalized)
+  ) {
+    return "cancelled";
+  }
+  if (
+    [
       "REJECTED",
       "REFUSED",
       "FAILED",
