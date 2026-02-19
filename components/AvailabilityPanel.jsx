@@ -30,10 +30,16 @@ function dayLabel(dateYmd) {
 }
 
 function stateClass(state) {
+  if (state === "off") return "bg-emerald-100 text-emerald-700 border-emerald-200";
   if (state === "full") return "bg-rose-100 text-rose-700 border-rose-200";
   if (state === "limited") return "bg-amber-100 text-amber-800 border-amber-200";
   if (state === "available") return "bg-emerald-100 text-emerald-700 border-emerald-200";
   return "bg-neutral-100 text-neutral-600 border-neutral-200";
+}
+
+function stateLabel(state) {
+  if (state === "off") return "available";
+  return state;
 }
 
 export default function AvailabilityPanel({ slug, itemType = "service" }) {
@@ -125,7 +131,7 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
                     day.state
                   )}`}
                 >
-                  {day.state}
+                  {stateLabel(day.state)}
                 </span>
               </div>
 
