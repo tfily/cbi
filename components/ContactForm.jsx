@@ -27,6 +27,20 @@ async function parseJsonSafe(response) {
   }
 }
 
+function buildApiErrorMessage(response, payload, fallback) {
+  const cawlErrorId = payload?.details?.errors?.[0]?.id;
+  const detailed =
+    payload?.error ||
+    payload?.details?.message ||
+    payload?.details?.error ||
+    payload?.raw;
+  if (detailed) {
+    if (cawlErrorId) return `${detailed} (${cawlErrorId})`;
+    return detailed;
+  }
+  return `${fallback} (HTTP ${response.status})`;
+}
+
 function extractPackEntries(meta) {
   if (!meta) return [];
   const entries = [];
@@ -243,7 +257,9 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
 
       const payload = await parseJsonSafe(res);
       if (!res.ok) {
-        throw new Error(payload?.error || "Paiement indisponible.");
+        throw new Error(
+          buildApiErrorMessage(res, payload, "Paiement indisponible.")
+        );
       }
 
       if (payload?.redirectUrl) {
@@ -306,7 +322,9 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
 
       const payload = await parseJsonSafe(res);
       if (!res.ok) {
-        throw new Error(payload?.error || "Paiement indisponible.");
+        throw new Error(
+          buildApiErrorMessage(res, payload, "Paiement indisponible.")
+        );
       }
 
       if (payload?.redirectUrl) {
@@ -355,7 +373,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
 
       const response = await parseJsonSafe(res);
       if (!res.ok) {
-        throw new Error(response?.error || "Envoi impossible.");
+        throw new Error(buildApiErrorMessage(res, response, "Envoi impossible."));
       }
 
       setSubmitStatus("Merci, votre demande a bien été envoyée.");
