@@ -17,6 +17,16 @@ function parsePriceToMinor(value) {
   return Math.round(numeric * 100);
 }
 
+async function parseJsonSafe(response) {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
+}
+
 function extractPackEntries(meta) {
   if (!meta) return [];
   const entries = [];
@@ -231,7 +241,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         }),
       });
 
-      const payload = await res.json();
+      const payload = await parseJsonSafe(res);
       if (!res.ok) {
         throw new Error(payload?.error || "Paiement indisponible.");
       }
@@ -294,7 +304,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         }),
       });
 
-      const payload = await res.json();
+      const payload = await parseJsonSafe(res);
       if (!res.ok) {
         throw new Error(payload?.error || "Paiement indisponible.");
       }
@@ -343,7 +353,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         body: JSON.stringify(payload),
       });
 
-      const response = await res.json();
+      const response = await parseJsonSafe(res);
       if (!res.ok) {
         throw new Error(response?.error || "Envoi impossible.");
       }
