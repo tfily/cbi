@@ -29,6 +29,12 @@ function dayLabel(dateYmd) {
   return date.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit" });
 }
 
+function isWeekend(dateYmd) {
+  const date = new Date(`${dateYmd}T00:00:00`);
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
+
 function stateClass(state) {
   if (state === "off") return "bg-emerald-100 text-emerald-700 border-emerald-200";
   if (state === "full") return "bg-rose-100 text-rose-700 border-rose-200";
@@ -124,18 +130,26 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
               key={day.date}
               className="rounded-2xl border border-neutral-100 bg-neutral-50 px-4 py-3"
             >
+              {/*
+                Weekends are always closed in UI, even if backend rules exist.
+              */}
+              {(() => {
+                const weekend = isWeekend(day.date);
+                const effectiveState = weekend ? "off" : day.state;
+                return (
+                  <>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-semibold text-neutral-900">{dayLabel(day.date)}</p>
                 <span
                   className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${stateClass(
-                    day.state
+                    effectiveState
                   )}`}
                 >
-                  {stateLabel(day.state)}
+                  {stateLabel(effectiveState)}
                 </span>
               </div>
 
-              {Array.isArray(day.slots) && day.slots.length > 0 ? (
+              {!weekend && Array.isArray(day.slots) && day.slots.length > 0 ? (
                 <div className="space-y-2">
                   {day.slots.map((slot, idx) => (
                     <div
@@ -172,9 +186,14 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
                     </div>
                   ))}
                 </div>
+              ) : weekend ? (
+                <p className="text-xs text-neutral-500">Weekend ferme.</p>
               ) : (
                 <p className="text-xs text-neutral-500">Aucun creneau configure.</p>
               )}
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>

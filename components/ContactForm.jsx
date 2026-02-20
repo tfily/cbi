@@ -54,6 +54,14 @@ function startOfWeekMonday(inputYmd) {
   return `${year}-${month}-${dayOfMonth}`;
 }
 
+function isWeekendDate(inputYmd) {
+  if (!inputYmd) return false;
+  const date = new Date(`${inputYmd}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return false;
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
+
 function extractPackEntries(meta) {
   if (!meta) return [];
   const entries = [];
@@ -293,6 +301,10 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       setPayError("Merci de choisir une date d intervention avant de payer.");
       return;
     }
+    if (isWeekendDate(booking.scheduledDate)) {
+      setPayError("Les interventions ne sont pas disponibles le weekend.");
+      return;
+    }
     if (availableSlots.length > 0 && !booking.timeSlot) {
       setPayError("Merci de choisir un creneau disponible avant de payer.");
       return;
@@ -361,6 +373,10 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     }
     if (!booking.scheduledDate) {
       setPayError("Merci de choisir une date d intervention avant de payer.");
+      return;
+    }
+    if (isWeekendDate(booking.scheduledDate)) {
+      setPayError("Les interventions ne sont pas disponibles le weekend.");
       return;
     }
     if (availableSlots.length > 0 && !booking.timeSlot) {
@@ -432,6 +448,10 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
 
     if (!payload.email || !payload.message) {
       setSubmitStatus("Merci de renseigner votre email et votre demande.");
+      return;
+    }
+    if (isWeekendDate(payload.scheduledDate)) {
+      setSubmitStatus("Les interventions ne sont pas disponibles le weekend.");
       return;
     }
 
