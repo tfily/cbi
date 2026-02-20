@@ -6,7 +6,7 @@ import {
   getCawlWebhookUrl,
   getCawlRuntimeConfig,
 } from "../../../../lib/cawl";
-import { createWooOrder, updateWooOrder } from "../../../../lib/woocommerce";
+import { createWooOrder, listWooOrders, updateWooOrder } from "../../../../lib/woocommerce";
 
 export const runtime = "nodejs";
 
@@ -41,6 +41,33 @@ function buildReturnUrl(request, orderId) {
   const base = requestBase || configuredBase || (isDev ? "http://localhost:3000" : "");
   if (!base) return "";
   return `${base.replace(/\/$/, "")}/payment/return?orderId=${orderId}`;
+}
+
+function readOrderMeta(order, key) {
+  return (
+    (order?.meta_data || []).find((entry) => entry?.key === key)?.value || ""
+  );
+}
+
+async function hasSlotConflict({ serviceSlug, subscriptionSlug, scheduledDate, timeSlot }) {
+  const targetItemSlug = String(subscriptionSlug || serviceSlug || "");
+  if (!targetItemSlug || !scheduledDate || !timeSlot) return false;
+
+  const orders = await listWooOrders({
+    status: "pending,on-hold,processing,completed",
+    per_page: 100,
+    orderby: "date",
+    order: "desc",
+  });
+
+  return (orders || []).some((order) => {
+    const itemSlug = String(
+      readOrderMeta(order, "subscription_slug") || readOrderMeta(order, "service_slug")
+    );
+    const date = String(readOrderMeta(order, "scheduled_date"));
+    const slot = String(readOrderMeta(order, "time_slot"));
+    return itemSlug === targetItemSlug && date === String(scheduledDate) && slot === String(timeSlot);
+  });
 }
 
 export async function POST(request) {
@@ -101,12 +128,31 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+    if (!timeSlot) {
+      return NextResponse.json(
+        { error: "Missing timeSlot." },
+        { status: 400 }
+      );
+    }
 
     const productId = Number(process.env.WC_DEFAULT_PRODUCT_ID || 0);
     if (!productId) {
       return NextResponse.json(
         { error: "Missing WC_DEFAULT_PRODUCT_ID." },
         { status: 400 }
+      );
+    }
+
+    const slotIsAlreadyBooked = await hasSlotConflict({
+      serviceSlug,
+      subscriptionSlug,
+      scheduledDate,
+      timeSlot,
+    });
+    if (slotIsAlreadyBooked) {
+      return NextResponse.json(
+        { error: "Ce creneau est deja reserve. Merci de choisir un autre horaire." },
+        { status: 409 }
       );
     }
 
