@@ -41,6 +41,19 @@ function buildApiErrorMessage(response, payload, fallback) {
   return `${fallback} (HTTP ${response.status})`;
 }
 
+function startOfWeekMonday(inputYmd) {
+  if (!inputYmd) return "";
+  const date = new Date(`${inputYmd}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const dayOfMonth = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${dayOfMonth}`;
+}
+
 function extractPackEntries(meta) {
   if (!meta) return [];
   const entries = [];
@@ -130,6 +143,8 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   const [payError, setPayError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState("");
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const formRef = useRef(null);
 
   const options = useMemo(
@@ -194,6 +209,55 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     }
   }, [selectedService, servicePricingMode]);
 
+  useEffect(() => {
+    const slug = subscriptionChoice || serviceChoice;
+    const weekStart = startOfWeekMonday(scheduledDate);
+    if (!slug || !scheduledDate || !weekStart) {
+      setAvailableSlots([]);
+      return;
+    }
+
+    let cancelled = false;
+    async function loadSlots() {
+      setSlotsLoading(true);
+      try {
+        const res = await fetch(
+          `/api/availability?slug=${encodeURIComponent(slug)}&week_start=${encodeURIComponent(
+            weekStart
+          )}`
+        );
+        const payload = await parseJsonSafe(res);
+        if (!res.ok) throw new Error(payload?.error || "Indisponible");
+        const dayData = (payload?.days || []).find((day) => day?.date === scheduledDate);
+        const slots = Array.isArray(dayData?.slots)
+          ? dayData.slots.filter(
+              (slot) =>
+                slot?.slot &&
+                String(slot.state || "").toLowerCase() !== "full" &&
+                Number(slot.remaining || 0) > 0
+            )
+          : [];
+        if (!cancelled) setAvailableSlots(slots);
+      } catch {
+        if (!cancelled) setAvailableSlots([]);
+      } finally {
+        if (!cancelled) setSlotsLoading(false);
+      }
+    }
+
+    loadSlots();
+    return () => {
+      cancelled = true;
+    };
+  }, [serviceChoice, subscriptionChoice, scheduledDate]);
+
+  useEffect(() => {
+    if (!timeSlot) return;
+    if (!availableSlots.length) return;
+    const found = availableSlots.some((slot) => slot.slot === timeSlot);
+    if (!found) setTimeSlot("");
+  }, [availableSlots, timeSlot]);
+
   function getBookingFromForm() {
     const form = formRef.current;
     if (!form) return null;
@@ -227,6 +291,10 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     }
     if (!booking.scheduledDate) {
       setPayError("Merci de choisir une date d intervention avant de payer.");
+      return;
+    }
+    if (availableSlots.length > 0 && !booking.timeSlot) {
+      setPayError("Merci de choisir un creneau disponible avant de payer.");
       return;
     }
 
@@ -293,6 +361,10 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     }
     if (!booking.scheduledDate) {
       setPayError("Merci de choisir une date d intervention avant de payer.");
+      return;
+    }
+    if (availableSlots.length > 0 && !booking.timeSlot) {
+      setPayError("Merci de choisir un creneau disponible avant de payer.");
       return;
     }
 
@@ -434,14 +506,30 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           <label className="block text-xs font-medium mb-1">
             Créneau (optionnel)
           </label>
-          <input
-            type="text"
-            name="time_slot"
-            placeholder="Ex: 09:00-12:00"
-            value={timeSlot}
-            onChange={(event) => setTimeSlot(event.target.value)}
-            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
+          {availableSlots.length > 0 ? (
+            <select
+              name="time_slot"
+              value={timeSlot}
+              onChange={(event) => setTimeSlot(event.target.value)}
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Choisir un creneau</option>
+              {availableSlots.map((slot) => (
+                <option key={slot.slot} value={slot.slot}>
+                  {slot.slot}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              name="time_slot"
+              placeholder={slotsLoading ? "Chargement des creneaux..." : "Ex: 09:00-10:00"}
+              value={timeSlot}
+              onChange={(event) => setTimeSlot(event.target.value)}
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          )}
         </div>
       </div>
 
