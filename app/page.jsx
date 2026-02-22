@@ -102,7 +102,18 @@ function isPlaceholderNewsItem(item) {
     .replace(/\s+/g, " ")
     .trim();
   if (!text) return true;
-  return text === "hello world" || text === "bonjour tout le monde";
+  const placeholderPhrases = [
+    "hello world",
+    "bonjour tout le monde",
+    "bienvenue sur wordpress",
+    "welcome to wordpress",
+    "modifiez ou supprimez",
+    "edit or delete it",
+    "start writing",
+  ];
+  if (placeholderPhrases.some((phrase) => text.includes(phrase))) return true;
+  if (title === "hello world" || title === "bonjour tout le monde") return true;
+  return false;
 }
 
 export default async function HomePage() {
