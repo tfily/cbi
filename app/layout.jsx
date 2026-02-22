@@ -9,6 +9,27 @@ export const metadata = {
     "Conciergerie by Isa propose des services personnalisés pour simplifier le quotidien à Paris et en petite couronne.",
 };
 
+function InstagramIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="5" ry="5" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+function LinkedInIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="2" />
+      <rect x="7" y="10" width="2.2" height="7" fill="currentColor" />
+      <circle cx="8.1" cy="7.4" r="1.2" fill="currentColor" />
+      <path d="M12 10h2.1v1c.4-.6 1.2-1.3 2.5-1.3 2 0 3.4 1.2 3.4 3.9V17h-2.2v-3.2c0-1.4-.5-2.1-1.6-2.1-1.2 0-1.9.8-1.9 2.1V17H12z" fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function RootLayout({ children }) {
   const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
 
@@ -58,17 +79,21 @@ export default function RootLayout({ children }) {
                     href="https://www.instagram.com/conciergeriebyisa?igsh=aml3dGVicjEzZXBr"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-neutral-600 hover:text-amber-800"
+                    aria-label="Instagram"
+                    className="inline-flex items-center gap-1 text-neutral-600 hover:text-amber-800"
                   >
-                    Instagram
+                    <InstagramIcon className="h-4 w-4" />
+                    <span>Instagram</span>
                   </a>
                   <a
                     href="https://www.linkedin.com/in/isabelle-haquin-conciergerie-by-isa-009106385?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-neutral-600 hover:text-amber-800"
+                    aria-label="LinkedIn"
+                    className="inline-flex items-center gap-1 text-neutral-600 hover:text-amber-800"
                   >
-                    LinkedIn
+                    <LinkedInIcon className="h-4 w-4" />
+                    <span>LinkedIn</span>
                   </a>
                 </div>
               </div>
@@ -153,17 +178,21 @@ export default function RootLayout({ children }) {
                   href="https://www.instagram.com/conciergeriebyisa?igsh=aml3dGVicjEzZXBr"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-neutral-600 hover:text-amber-800"
+                  aria-label="Instagram"
+                  className="inline-flex items-center gap-1 text-neutral-600 hover:text-amber-800"
                 >
-                  Instagram
+                  <InstagramIcon className="h-4 w-4" />
+                  <span>Instagram</span>
                 </a>
                 <a
                   href="https://www.linkedin.com/in/isabelle-haquin-conciergerie-by-isa-009106385?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-neutral-600 hover:text-amber-800"
+                  aria-label="LinkedIn"
+                  className="inline-flex items-center gap-1 text-neutral-600 hover:text-amber-800"
                 >
-                  LinkedIn
+                  <LinkedInIcon className="h-4 w-4" />
+                  <span>LinkedIn</span>
                 </a>
               </div>
             </div>
