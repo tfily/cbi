@@ -80,20 +80,20 @@ export default function RootLayout({ children }) {
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Instagram"
-                    className="inline-flex items-center gap-1 text-neutral-600 hover:text-amber-800"
+                    title="Instagram"
+                    className="inline-flex items-center text-neutral-600 hover:text-amber-800"
                   >
                     <InstagramIcon className="h-4 w-4" />
-                    <span>Instagram</span>
                   </a>
                   <a
                     href="https://www.linkedin.com/in/isabelle-haquin-conciergerie-by-isa-009106385?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
                     target="_blank"
                     rel="noreferrer"
                     aria-label="LinkedIn"
-                    className="inline-flex items-center gap-1 text-neutral-600 hover:text-amber-800"
+                    title="LinkedIn"
+                    className="inline-flex items-center text-neutral-600 hover:text-amber-800"
                   >
                     <LinkedInIcon className="h-4 w-4" />
-                    <span>LinkedIn</span>
                   </a>
                 </div>
               </div>
@@ -179,20 +179,20 @@ export default function RootLayout({ children }) {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Instagram"
-                  className="inline-flex items-center gap-1 text-neutral-600 hover:text-amber-800"
+                  title="Instagram"
+                  className="inline-flex items-center text-neutral-600 hover:text-amber-800"
                 >
                   <InstagramIcon className="h-4 w-4" />
-                  <span>Instagram</span>
                 </a>
                 <a
                   href="https://www.linkedin.com/in/isabelle-haquin-conciergerie-by-isa-009106385?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
                   target="_blank"
                   rel="noreferrer"
                   aria-label="LinkedIn"
-                  className="inline-flex items-center gap-1 text-neutral-600 hover:text-amber-800"
+                  title="LinkedIn"
+                  className="inline-flex items-center text-neutral-600 hover:text-amber-800"
                 >
                   <LinkedInIcon className="h-4 w-4" />
-                  <span>LinkedIn</span>
                 </a>
               </div>
             </div>
