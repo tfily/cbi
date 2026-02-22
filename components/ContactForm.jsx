@@ -17,6 +17,20 @@ function parsePriceToMinor(value) {
   return Math.round(numeric * 100);
 }
 
+function parseBooleanMeta(value) {
+  if (typeof value === "boolean") return value;
+  const normalized = String(value || "").trim().toLowerCase();
+  return ["1", "true", "yes", "on", "oui"].includes(normalized);
+}
+
+function normalizeKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 async function parseJsonSafe(response) {
   const text = await response.text();
   if (!text) return {};
@@ -158,10 +172,22 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   const options = useMemo(
     () =>
       (services || []).map((s) => ({
+        normalizedLabel: normalizeKey(cleanHtml(s.title?.rendered || "")),
         slug: s.slug,
         label: cleanHtml(s.title?.rendered || ""),
         priceLabel: s.meta?.cbi_price || s.meta?.price || "",
         priceMinor: parsePriceToMinor(s.meta?.cbi_price || s.meta?.price),
+        invoiceOnly:
+          parseBooleanMeta(s.meta?.cbi_invoice_only) ||
+          String(s.meta?.cbi_payment_mode || "").toLowerCase() === "invoice" ||
+          /coach/i.test(String(s.slug || "")),
+        contactUrl: s.meta?.cbi_invoice_contact_url || "#contact",
+        bookingFeeMinor:
+          parsePriceToMinor(s.meta?.cbi_booking_fee) ||
+          (normalizeKey(cleanHtml(s.title?.rendered || "")) ===
+          "reservation de transports"
+            ? 500
+            : 0),
         packOptions: extractPackEntries(s.meta),
       })),
     [services]
@@ -188,22 +214,32 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   );
   const selectedServicePricing = useMemo(() => {
     if (!selectedService) return null;
+    const bookingFeeMinor = Number(selectedService.bookingFeeMinor || 0);
+    const isTransportReservation =
+      selectedService.normalizedLabel === "reservation de transports";
+    const baseUnitMinor = isTransportReservation
+      ? 0
+      : Number(selectedService.priceMinor || 0);
     if (servicePricingMode !== "unit") {
       const packOption = (selectedService.packOptions || []).find(
         (opt) => opt.mode === servicePricingMode
       );
       if (packOption) {
+        const amountMinor = Number(packOption.amountMinor || 0) + bookingFeeMinor;
         return {
           mode: packOption.mode,
           label: packOption.priceLabel || selectedService.priceLabel,
-          amountMinor: packOption.amountMinor,
+          amountMinor,
+          bookingFeeMinor,
         };
       }
     }
+    const amountMinor = Number(selectedService.priceMinor || 0) + bookingFeeMinor;
     return {
       mode: "unit",
       label: selectedService.priceLabel,
-      amountMinor: selectedService.priceMinor,
+      amountMinor: baseUnitMinor + bookingFeeMinor,
+      bookingFeeMinor,
     };
   }, [selectedService, servicePricingMode]);
 
@@ -580,6 +616,17 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
                   </option>
                 ))}
               </select>
+              {selectedService?.invoiceOnly ? (
+                <p className="mt-2 text-xs text-amber-200">
+                  Ce service est traite sur devis. Utilisez le contact ci-dessous.
+                </p>
+              ) : null}
+              {selectedServicePricing?.bookingFeeMinor ? (
+                <p className="mt-2 text-xs text-neutral-300">
+                  Frais de reservation transport inclus:{" "}
+                  {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} EUR
+                </p>
+              ) : null}
               {selectedService?.packOptions?.length ? (
                 <div className="mt-3">
                   <label className="block text-xs font-medium mb-1">Tarification</label>
@@ -675,11 +722,24 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           <button
             type="button"
             onClick={handlePayNow}
-            disabled={!paymentsEnabled || isPaying || !selectedServicePricing?.amountMinor}
+            disabled={
+              !paymentsEnabled ||
+              isPaying ||
+              !selectedServicePricing?.amountMinor ||
+              selectedService?.invoiceOnly
+            }
             className="inline-flex items-center px-5 py-2.5 rounded-full border border-amber-500 text-sm font-semibold text-amber-200 hover:bg-amber-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isPaying ? "Redirection..." : "Payer maintenant"}
           </button>
+          {selectedService?.invoiceOnly ? (
+            <a
+              href={selectedService.contactUrl || "#contact"}
+              className="inline-flex items-center px-5 py-2.5 rounded-full border border-neutral-500 text-sm font-semibold text-neutral-200 hover:bg-neutral-800/40 transition"
+            >
+              Contacter pour devis
+            </a>
+          ) : null}
         </div>
       </div>
       {submitStatus ? (
