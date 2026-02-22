@@ -4,7 +4,22 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 function cleanHtml(str) {
-  return str.replace(/<[^>]+>/g, "");
+  const noTags = String(str || "").replace(/<[^>]+>/g, "");
+  if (typeof window !== "undefined") {
+    const textarea = document.createElement("textarea");
+    textarea.innerHTML = noTags;
+    return textarea.value;
+  }
+  return noTags
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;|&rsquo;|&#8217;/g, "'")
+    .replace(/&ldquo;|&#8220;/g, '"')
+    .replace(/&rdquo;|&#8221;/g, '"')
+    .replace(/&eacute;/g, "e")
+    .replace(/&agrave;/g, "a")
+    .replace(/&ccedil;/g, "c");
 }
 
 function parsePriceToMinor(value) {
