@@ -93,6 +93,18 @@ function getPackPrices(meta) {
     .map((p) => `Pack ${p.size}: ${p.value}`);
 }
 
+function isPlaceholderNewsItem(item) {
+  const title = normalizeKey(cleanHtml(item?.title?.rendered || ""));
+  const excerpt = normalizeKey(cleanHtml(item?.excerpt?.rendered || ""));
+  const content = normalizeKey(cleanHtml(item?.content?.rendered || ""));
+  const text = `${title} ${excerpt} ${content}`
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!text) return true;
+  return text === "hello world" || text === "bonjour tout le monde";
+}
+
 export default async function HomePage() {
   const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
 
@@ -143,6 +155,7 @@ export default async function HomePage() {
     getInfoBoxes().catch(() => []),
     getSiteInfo().catch(() => ({ name: "Conciergerie by Isa", description: "" })),
   ]);
+  const visibleNews = (news || []).filter((item) => !isPlaceholderNewsItem(item));
 
   // Choose a random hero image among several lifestyle variants
   const heroImages = [
@@ -427,21 +440,17 @@ export default async function HomePage() {
       </section>
 
       {/* News / Promo from posts */}
-      <section id="news" className="max-w-5xl mx-auto px-4 py-12 md:py-16">
-        <div className="flex items-baseline justify-between mb-6">
-          <h2 className="text-2xl font-bold">Actualités et offres</h2>
-          <span className="text-xs text-neutral-500">
-            Dernières nouvelles depuis notre conciergerie
-          </span>
-        </div>
+      {visibleNews.length > 0 ? (
+        <section id="news" className="max-w-5xl mx-auto px-4 py-12 md:py-16">
+          <div className="flex items-baseline justify-between mb-6">
+            <h2 className="text-2xl font-bold">Actualités et offres</h2>
+            <span className="text-xs text-neutral-500">
+              Dernières nouvelles depuis notre conciergerie
+            </span>
+          </div>
 
-        {news.length === 0 ? (
-          <p className="text-sm text-neutral-500">
-            Aucune actualité pour le moment. Ajoutez des articles dans WordPress pour les afficher ici.
-          </p>
-        ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            {news.map((item) => (
+            {visibleNews.map((item) => (
               <article
                 key={item.id}
                 className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm"
@@ -459,8 +468,8 @@ export default async function HomePage() {
               </article>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      ) : null}
 
       {/* Contact form */}
       <section
