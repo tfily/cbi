@@ -17,6 +17,31 @@ function cleanHtml(str) {
     .replace(/&ccedil;/g, "c");
 }
 
+function formatEuroLabel(value) {
+  if (value == null || value === "") return "";
+  const raw = String(value).trim();
+  if (!raw) return "";
+  if (raw.includes("€")) return raw;
+  if (/eur/i.test(raw)) return raw.replace(/eur/gi, "€");
+  const normalized = raw.replace(",", ".");
+  const numeric = Number(normalized);
+  if (!Number.isNaN(numeric)) {
+    const fixed = Number.isInteger(numeric)
+      ? String(numeric)
+      : numeric.toFixed(2).replace(/\.00$/, "").replace(".", ",");
+    return `${fixed}€`;
+  }
+  return `${raw}€`;
+}
+
+function normalizeKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 function getPackPrices(meta) {
   if (!meta) return [];
   const packs = [];
@@ -83,6 +108,19 @@ export default async function ServicePage({ params }) {
     media?.source_url ||
     null;
   const unitPrice = service.meta?.cbi_price || service.meta?.price || "";
+  const feePrice =
+    service.meta?.cbi_service_fee ||
+    service.meta?.cbi_booking_fee ||
+    (normalizeKey(cleanHtml(service.title.rendered)) === "reservation de transports"
+      ? "5"
+      : "");
+  const priceType = String(service.meta?.cbi_price_kind || "").toLowerCase();
+  const priceDisplay =
+    ((priceType === "fee" || !unitPrice) && feePrice)
+      ? `Frais de service: ${formatEuroLabel(feePrice)}`
+      : unitPrice
+        ? `Prix unitaire: ${formatEuroLabel(unitPrice)}`
+        : "";
   const packPrices = getPackPrices(service.meta);
 
   return (
@@ -113,8 +151,8 @@ export default async function ServicePage({ params }) {
           {cleanHtml(service.title.rendered)}
         </h1>
 
-        {unitPrice ? (
-          <p className="text-sm font-semibold text-amber-800 mb-1">Tarif unitaire: {unitPrice}</p>
+        {priceDisplay ? (
+          <p className="text-sm font-semibold text-amber-800 mb-1">{priceDisplay}</p>
         ) : null}
         {packPrices.length > 0 ? (
           <p className="text-sm font-semibold text-neutral-700 mb-4">

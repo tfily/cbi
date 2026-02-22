@@ -46,6 +46,22 @@ function normalizeKey(value) {
     .trim();
 }
 
+function formatEuroLabel(value) {
+  if (value == null || value === "") return "";
+  const raw = String(value).trim();
+  if (!raw) return "";
+  if (raw.includes("€")) return raw;
+  if (/eur/i.test(raw)) return raw.replace(/eur/gi, "€");
+  const numeric = Number(raw.replace(",", "."));
+  if (!Number.isNaN(numeric)) {
+    const fixed = Number.isInteger(numeric)
+      ? String(numeric)
+      : numeric.toFixed(2).replace(/\.00$/, "").replace(".", ",");
+    return `${fixed}€`;
+  }
+  return `${raw}€`;
+}
+
 async function parseJsonSafe(response) {
   const text = await response.text();
   if (!text) return {};
@@ -197,6 +213,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           String(s.meta?.cbi_payment_mode || "").toLowerCase() === "invoice" ||
           /coach/i.test(String(s.slug || "")),
         contactUrl: s.meta?.cbi_invoice_contact_url || "#contact",
+        priceKind: String(s.meta?.cbi_price_kind || "").toLowerCase(),
         bookingFeeMinor:
           parsePriceToMinor(s.meta?.cbi_booking_fee) ||
           (normalizeKey(cleanHtml(s.title?.rendered || "")) ===
@@ -257,6 +274,22 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       bookingFeeMinor,
     };
   }, [selectedService, servicePricingMode]);
+
+  const selectedServiceHeadlinePrice = useMemo(() => {
+    if (!selectedService) return "";
+    if (selectedService.priceKind === "fee" && selectedService.priceLabel) {
+      return `Frais de service ${formatEuroLabel(selectedService.priceLabel)}`;
+    }
+    if (selectedService.priceLabel) {
+      return `Prix unitaire ${formatEuroLabel(selectedService.priceLabel)}`;
+    }
+    if (selectedService.bookingFeeMinor) {
+      return `Frais de service ${formatEuroLabel(
+        (selectedService.bookingFeeMinor / 100).toFixed(2)
+      )}`;
+    }
+    return "";
+  }, [selectedService]);
 
   useEffect(() => {
     const availableModes = new Set([
@@ -627,7 +660,13 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
                 {options.map((o) => (
                   <option key={o.slug} value={o.slug}>
                     {o.label}
-                    {o.priceLabel ? ` – ${o.priceLabel}` : ""}
+                    {o.priceKind === "fee" && o.priceLabel
+                      ? ` - Frais de service ${formatEuroLabel(o.priceLabel)}`
+                      : o.priceLabel
+                        ? ` - Prix unitaire ${formatEuroLabel(o.priceLabel)}`
+                        : o.bookingFeeMinor
+                          ? ` - Frais de service ${formatEuroLabel((o.bookingFeeMinor / 100).toFixed(2))}`
+                          : ""}
                   </option>
                 ))}
               </select>
@@ -642,6 +681,9 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
                   {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} EUR
                 </p>
               ) : null}
+              {selectedServiceHeadlinePrice ? (
+                <p className="mt-2 text-xs text-neutral-300">{selectedServiceHeadlinePrice}</p>
+              ) : null}
               {selectedService?.packOptions?.length ? (
                 <div className="mt-3">
                   <label className="block text-xs font-medium mb-1">Tarification</label>
@@ -652,7 +694,10 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
                     className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                   >
                     <option value="unit">
-                      Tarif unitaire{selectedService.priceLabel ? ` - ${selectedService.priceLabel}` : ""}
+                      Prix unitaire
+                      {selectedService.priceLabel
+                        ? ` - ${formatEuroLabel(selectedService.priceLabel)}`
+                        : ""}
                     </option>
                     {selectedService.packOptions.map((pack) => (
                       <option key={pack.mode} value={pack.mode}>

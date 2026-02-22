@@ -24,6 +24,49 @@ function cleanHtml(str) {
     .replace(/&ccedil;/g, "c");
 }
 
+function formatEuroLabel(value) {
+  if (value == null || value === "") return "";
+  const raw = String(value).trim();
+  if (!raw) return "";
+  if (raw.includes("€")) return raw;
+  if (/eur/i.test(raw)) return raw.replace(/eur/gi, "€");
+  const normalized = raw.replace(",", ".");
+  const numeric = Number(normalized);
+  if (!Number.isNaN(numeric)) {
+    const fixed = Number.isInteger(numeric)
+      ? String(numeric)
+      : numeric.toFixed(2).replace(/\.00$/, "").replace(".", ",");
+    return `${fixed}€`;
+  }
+  return `${raw}€`;
+}
+
+function normalizeKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function getServicePriceDisplay(service) {
+  const title = cleanHtml(service?.title?.rendered || "");
+  const normalizedTitle = normalizeKey(title);
+  const unitPrice = service?.meta?.cbi_price || service?.meta?.price || "";
+  const feePrice =
+    service?.meta?.cbi_service_fee ||
+    service?.meta?.cbi_booking_fee ||
+    (normalizedTitle === "reservation de transports" ? "5" : "");
+  const type = String(service?.meta?.cbi_price_kind || "").toLowerCase();
+  if ((type === "fee" || !unitPrice) && feePrice) {
+    return `Frais de service ${formatEuroLabel(feePrice)}`;
+  }
+  if (unitPrice) {
+    return `Prix unitaire ${formatEuroLabel(unitPrice)}`;
+  }
+  return "";
+}
+
 function getPackPrices(meta) {
   if (!meta) return [];
   const packs = [];
@@ -228,7 +271,7 @@ export default async function HomePage() {
     service._embedded["wp:featuredmedia"][0];
   const imgUrl =
     media?.media_details?.sizes?.medium?.source_url || media?.source_url || null;
-  const priceLabel = service.meta?.cbi_price || service.meta?.price || "";
+  const priceLabel = getServicePriceDisplay(service);
   const packPriceLabels = getPackPrices(service.meta);
 
   return (
