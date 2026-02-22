@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { deleteWooOrder, listWooOrders } from "../../../../lib/woocommerce";
+import {
+  deleteWooOrder,
+  listWooOrders,
+  updateWooOrder,
+} from "../../../../lib/woocommerce";
 
 export const runtime = "nodejs";
 
@@ -11,6 +15,7 @@ function hasCawlProviderMeta(order) {
 }
 
 function isOlderThanDays(dateIso, days) {
+  if (days <= 0) return true;
   if (!dateIso) return false;
   const target = new Date(dateIso).getTime();
   if (Number.isNaN(target)) return false;
@@ -27,10 +32,11 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const days = Number(body?.days || process.env.ORDER_CLEANUP_DAYS || 14);
+    const days = Number(body?.days ?? process.env.ORDER_CLEANUP_DAYS ?? 14);
     const statuses = Array.isArray(body?.statuses) && body.statuses.length
       ? body.statuses
-      : ["cancelled", "failed", "pending"];
+      : ["pending", "on-hold", "processing", "completed", "cancelled", "failed", "refunded"];
+    const releaseFirst = body?.releaseFirst !== false;
 
     const candidates = await listWooOrders({
       per_page: 100,
@@ -47,8 +53,13 @@ export async function POST(request) {
 
     const deleted = [];
     const failed = [];
+    const released = [];
     for (const order of filtered) {
       try {
+        if (releaseFirst && !["cancelled", "failed", "refunded"].includes(order?.status)) {
+          await updateWooOrder(order.id, { status: "cancelled" });
+          released.push(order.id);
+        }
         await deleteWooOrder(order.id, true);
         deleted.push(order.id);
       } catch (error) {
@@ -62,6 +73,8 @@ export async function POST(request) {
     return NextResponse.json({
       ok: true,
       scanned: Array.isArray(candidates) ? candidates.length : 0,
+      releaseFirst,
+      released,
       deleted,
       failed,
     });
