@@ -49,9 +49,29 @@ export default function RootLayout({ children }) {
                   © {new Date().getFullYear()} Conciergerie by Isa
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-500 text-center sm:text-right">
-                Zones : Paris 6e, 7e, 15e, 17e et 92 - services assurés et conformes RGPD.
-              </p>
+              <div className="text-center sm:text-right">
+                <p className="text-[11px] text-neutral-500">
+                  Zones : Paris 6e, 7e, 15e, 17e et 92 - services assurés et conformes RGPD.
+                </p>
+                <div className="mt-2 flex items-center justify-center sm:justify-end gap-3 text-xs">
+                  <a
+                    href="https://www.instagram.com/conciergeriebyisa?igsh=aml3dGVicjEzZXBr"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-neutral-600 hover:text-amber-800"
+                  >
+                    Instagram
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/in/isabelle-haquin-conciergerie-by-isa-009106385?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-neutral-600 hover:text-amber-800"
+                  >
+                    LinkedIn
+                  </a>
+                </div>
+              </div>
             </div>
           </footer>
         </body>
@@ -124,9 +144,29 @@ export default function RootLayout({ children }) {
                 © {new Date().getFullYear()} Conciergerie by Isa
               </span>
             </div>
-            <p className="text-[11px] text-neutral-500 text-center sm:text-right">
-              Zones : Paris 6e, 7e, 15e, 17e et 92 - services assurés et conformes RGPD.
-            </p>
+            <div className="text-center sm:text-right">
+              <p className="text-[11px] text-neutral-500">
+                Zones : Paris 6e, 7e, 15e, 17e et 92 - services assurés et conformes RGPD.
+              </p>
+              <div className="mt-2 flex items-center justify-center sm:justify-end gap-3 text-xs">
+                <a
+                  href="https://www.instagram.com/conciergeriebyisa?igsh=aml3dGVicjEzZXBr"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-neutral-600 hover:text-amber-800"
+                >
+                  Instagram
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/isabelle-haquin-conciergerie-by-isa-009106385?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-neutral-600 hover:text-amber-800"
+                >
+                  LinkedIn
+                </a>
+              </div>
+            </div>
           </div>
         </footer>
 
