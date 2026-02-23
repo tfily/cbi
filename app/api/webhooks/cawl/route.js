@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCawlWebhooksHelper } from "../../../../lib/cawl";
-import { updateWooOrder } from "../../../../lib/woocommerce";
+import { getWooOrder, updateWooOrder } from "../../../../lib/woocommerce";
+import { sendOrderSmsNotification } from "../../../../lib/notifications";
 
 export const runtime = "nodejs";
 
@@ -77,6 +78,12 @@ function mapStatusToWoo(status) {
   return "on-hold";
 }
 
+function readMeta(order, key) {
+  return (
+    (order?.meta_data || []).find((entry) => entry?.key === key)?.value || ""
+  );
+}
+
 export async function POST(request) {
   try {
     const rawBody = await request.text();
@@ -104,6 +111,36 @@ export async function POST(request) {
           { key: "cawl_last_status", value: paymentStatus },
         ],
       });
+
+      // Notify admin once when payment reaches a paid state.
+      if (wooStatus === "processing") {
+        try {
+          const order = await getWooOrder(orderId);
+          const smsAlreadySent = String(readMeta(order, "cbi_sms_sent")) === "1";
+          if (!smsAlreadySent) {
+            const total = order?.total ? String(order.total) : "";
+            const smsResult = await sendOrderSmsNotification({
+              orderId,
+              serviceName: readMeta(order, "service_name") || readMeta(order, "service_slug"),
+              scheduledDate: readMeta(order, "scheduled_date"),
+              timeSlot: readMeta(order, "time_slot"),
+              amount: total,
+              currency: order?.currency || "EUR",
+            });
+            if (smsResult?.sent) {
+              await updateWooOrder(orderId, {
+                meta_data: [
+                  { key: "cbi_sms_sent", value: "1" },
+                  { key: "cbi_sms_channel", value: smsResult.channel || "" },
+                  { key: "cbi_sms_message_id", value: smsResult.id || "" },
+                ],
+              });
+            }
+          }
+        } catch (smsError) {
+          console.error("[CAWL] SMS notification failed:", smsError?.message || smsError);
+        }
+      }
     }
 
     console.info("[CAWL] webhook event:", {

@@ -36,6 +36,7 @@ function isWeekend(dateYmd) {
 }
 
 function stateClass(state) {
+  if (state === "setup") return "bg-amber-100 text-amber-800 border-amber-200";
   if (state === "off") return "bg-neutral-100 text-neutral-600 border-neutral-200";
   if (state === "full") return "bg-rose-100 text-rose-700 border-rose-200";
   if (state === "limited") return "bg-amber-100 text-amber-800 border-amber-200";
@@ -45,7 +46,11 @@ function stateClass(state) {
 
 function stateLabel(state) {
   if (state === "off") return "ferme";
-  return state;
+  if (state === "setup") return "a ouvrir";
+  if (state === "available") return "ouvert";
+  if (state === "limited") return "partiel";
+  if (state === "full") return "complet";
+  return "ferme";
 }
 
 export default function AvailabilityPanel({ slug, itemType = "service" }) {
@@ -135,62 +140,71 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
               */}
               {(() => {
                 const weekend = isWeekend(day.date);
-                const effectiveState = weekend ? "off" : day.state;
+                const slots = Array.isArray(day.slots) ? day.slots : [];
+                const configuredCapacity = slots.reduce(
+                  (sum, slot) => sum + Number(slot?.capacity || 0),
+                  0
+                );
+                const configuredRemaining = slots.reduce(
+                  (sum, slot) => sum + Number(slot?.remaining || 0),
+                  0
+                );
+                const defaultDailySlots = 8;
+                const totalCapacity =
+                  !weekend && configuredCapacity <= 0
+                    ? defaultDailySlots
+                    : configuredCapacity;
+                const totalRemaining =
+                  !weekend && configuredCapacity <= 0
+                    ? defaultDailySlots
+                    : configuredRemaining;
+                const effectiveState = weekend
+                  ? "off"
+                  : totalCapacity <= 0
+                    ? "setup"
+                    : totalRemaining <= 0
+                    ? "off"
+                    : totalRemaining < totalCapacity
+                      ? "limited"
+                      : day.state;
+                const ctaDisabled = weekend || totalRemaining <= 0;
+                const availabilityText = weekend
+                  ? "0 creneau disponible"
+                  : `${Math.max(0, totalRemaining)} creneau${
+                      Math.max(0, totalRemaining) > 1 ? "s" : ""
+                    } disponible${Math.max(0, totalRemaining) > 1 ? "s" : ""}`;
                 return (
                   <>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-semibold text-neutral-900">{dayLabel(day.date)}</p>
-                <span
-                  className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${stateClass(
-                    effectiveState
-                  )}`}
-                >
-                  {stateLabel(effectiveState)}
-                </span>
+                {effectiveState !== "off" ? (
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${stateClass(
+                      effectiveState
+                    )}`}
+                  >
+                    {stateLabel(effectiveState)}
+                  </span>
+                ) : null}
               </div>
 
-              {!weekend && Array.isArray(day.slots) && day.slots.length > 0 ? (
-                <div className="space-y-2">
-                  {day.slots.map((slot, idx) => (
-                    <div
-                      key={`${day.date}-${slot.slot || idx}`}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2"
-                    >
-                      <div>
-                        <p className="text-xs font-semibold text-neutral-800">
-                          {slot.slot || "Journee"}
-                        </p>
-                        <p className="text-[11px] text-neutral-500">
-                          {slot.booked}/{slot.capacity} reserves · {slot.remaining} restant(s)
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${stateClass(
-                            slot.state
-                          )}`}
-                        >
-                          {slot.state}
-                        </span>
-                        <a
-                          href={`/?${itemType}=${encodeURIComponent(
-                            slug
-                          )}&scheduled_date=${encodeURIComponent(day.date)}&time_slot=${encodeURIComponent(
-                            slot.slot || ""
-                          )}#contact`}
-                          className="inline-flex items-center rounded-full bg-amber-700 px-3 py-1 text-[11px] font-semibold text-white hover:bg-amber-800"
-                        >
-                          Reserver ce creneau
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : weekend ? (
-                <p className="text-xs text-neutral-500">Weekend ferme.</p>
-              ) : (
-                <p className="text-xs text-neutral-500">Aucun creneau configure.</p>
-              )}
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-neutral-500">{availabilityText}</p>
+                {ctaDisabled ? (
+                  <span className="inline-flex items-center rounded-full border border-neutral-300 px-3 py-1 text-[11px] font-semibold text-neutral-400">
+                    {weekend ? "Indisponible (weekend)" : "0 creneau disponible"}
+                  </span>
+                ) : (
+                  <a
+                    href={`/?${itemType}=${encodeURIComponent(
+                      slug
+                    )}&scheduled_date=${encodeURIComponent(day.date)}#contact`}
+                    className="inline-flex items-center rounded-full bg-amber-700 px-3 py-1 text-[11px] font-semibold text-white hover:bg-amber-800"
+                  >
+                    Reserver ({totalRemaining})
+                  </a>
+                )}
+              </div>
                   </>
                 );
               })()}
