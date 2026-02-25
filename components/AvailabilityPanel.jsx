@@ -53,6 +53,10 @@ function stateLabel(state) {
   return "ferme";
 }
 
+const WORKING_HOUR_START = 8;
+const WORKING_HOUR_END = 20;
+const DEFAULT_DAILY_SLOTS = WORKING_HOUR_END - WORKING_HOUR_START;
+
 export default function AvailabilityPanel({ slug, itemType = "service" }) {
   const [weekStart, setWeekStart] = useState(() => startOfWeekMonday());
   const [loading, setLoading] = useState(true);
@@ -149,14 +153,13 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
                   (sum, slot) => sum + Number(slot?.remaining || 0),
                   0
                 );
-                const defaultDailySlots = 8;
                 const totalCapacity =
                   !weekend && configuredCapacity <= 0
-                    ? defaultDailySlots
+                    ? DEFAULT_DAILY_SLOTS
                     : configuredCapacity;
                 const totalRemaining =
                   !weekend && configuredCapacity <= 0
-                    ? defaultDailySlots
+                    ? DEFAULT_DAILY_SLOTS
                     : configuredRemaining;
                 const effectiveState = weekend
                   ? "off"

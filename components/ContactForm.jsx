@@ -107,6 +107,22 @@ function isWeekendDate(inputYmd) {
   return day === 0 || day === 6;
 }
 
+function buildDefaultWorkingSlots() {
+  const slots = [];
+  for (let hour = 8; hour < 20; hour += 1) {
+    const start = String(hour).padStart(2, "0");
+    const end = String(hour + 1).padStart(2, "0");
+    slots.push({
+      slot: `${start}:00-${end}:00`,
+      capacity: 1,
+      booked: 0,
+      remaining: 1,
+      state: "available",
+    });
+  }
+  return slots;
+}
+
 function extractPackEntries(meta) {
   if (!meta) return [];
   const entries = [];
@@ -321,14 +337,17 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         const payload = await parseJsonSafe(res);
         if (!res.ok) throw new Error(payload?.error || "Indisponible");
         const dayData = (payload?.days || []).find((day) => day?.date === scheduledDate);
-        const slots = Array.isArray(dayData?.slots)
-          ? dayData.slots.filter(
-              (slot) =>
-                slot?.slot &&
-                String(slot.state || "").toLowerCase() !== "full" &&
-                Number(slot.remaining || 0) > 0
-            )
-          : [];
+        const apiSlots = Array.isArray(dayData?.slots) ? dayData.slots : [];
+        const slotsSource =
+          !isWeekendDate(scheduledDate) && apiSlots.length === 0
+            ? buildDefaultWorkingSlots()
+            : apiSlots;
+        const slots = slotsSource.filter(
+          (slot) =>
+            slot?.slot &&
+            String(slot.state || "").toLowerCase() !== "full" &&
+            Number(slot.remaining || 0) > 0
+        );
         if (!cancelled) setAvailableSlots(slots);
       } catch {
         if (!cancelled) setAvailableSlots([]);
