@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ScrollToTopButton from "../components/ScrollToTopButton";
 import SiteHeader from "../components/SiteHeader";
+import GoogleAnalytics from "../components/GoogleAnalytics";
 
 export const metadata = {
   title: "Conciergerie by Isa - Services de conciergerie à Paris",
@@ -33,11 +34,13 @@ function LinkedInIcon(props) {
 
 export default function RootLayout({ children }) {
   const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || "";
 
   if (maintenanceMode) {
     return (
       <html lang="fr">
         <body className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900">
+          <GoogleAnalytics gaId={gaId} />
           <SiteHeader showNavigation={false} />
 
           {/* MAIN CONTENT */}
@@ -94,6 +97,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="fr">
       <body className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900">
+        <GoogleAnalytics gaId={gaId} />
         <SiteHeader />
 
         {/* MAIN CONTENT */}
