@@ -5,6 +5,7 @@ Usage: copy/paste these texts into your `service` and `subscription` posts in Wo
 ## 1) Services
 
 ### Gestion des cles
+- Focus keyword: `gestion des cles Paris`
 - SEO Title: `Gestion des cles a Paris 6e, 7e, 15e, 17e | Conciergerie by Isa`
 - Meta Description: `Remise, reception et suivi de vos cles en toute confiance. Intervention rapide a Paris et petite couronne.`
 - Excerpt:
@@ -13,6 +14,7 @@ Usage: copy/paste these texts into your `service` and `subscription` posts in Wo
 `La gestion des cles demande de la disponibilite et de la rigueur. Nous assurons la remise, la recuperation et la verification des cles selon vos consignes. Vous gardez la main sur les horaires et nous vous confirmons chaque intervention. Service ideal pour locations courte duree, proprietaires absents et gestion immobiliere de proximite.`
 
 ### Pressing et blanchisserie
+- Focus keyword: `pressing a domicile Paris`
 - SEO Title: `Pressing et blanchisserie a domicile | Conciergerie by Isa`
 - Meta Description: `Collecte, depot et retour de votre linge avec suivi. Service pratique et flexible a Paris et Hauts-de-Seine.`
 - Excerpt:
@@ -21,6 +23,7 @@ Usage: copy/paste these texts into your `service` and `subscription` posts in Wo
 `Nous prenons en charge l'organisation de votre pressing et blanchisserie pour vous faire gagner du temps. Selon vos besoins, nous planifions la collecte, le depot et le retour, avec un suivi clair de chaque demande. Vous beneficierez d'un service souple, adapte a votre rythme, avec un niveau d'exigence eleve sur la qualite et les delais.`
 
 ### Garde et promenade d'animaux
+- Focus keyword: `garde animaux Paris`
 - SEO Title: `Garde et promenade d'animaux a Paris | Conciergerie by Isa`
 - Meta Description: `Promenade et presence attentive pour vos animaux pendant vos absences. Service de confiance, adapte au rythme de votre compagnon.`
 - Excerpt:
@@ -29,6 +32,7 @@ Usage: copy/paste these texts into your `service` and `subscription` posts in Wo
 `Nous proposons une prise en charge rassurante pour vos animaux: promenades, visites a domicile, eau, nourriture et attention quotidienne. Chaque intervention est adaptee aux habitudes de votre compagnon pour limiter le stress et maintenir sa routine. Ce service convient aux actifs, aux deplacements professionnels et aux absences ponctuelles.`
 
 ### Reservation de transports
+- Focus keyword: `reservation de transports Paris`
 - SEO Title: `Reservation de transports et coordination de trajets | Conciergerie by Isa`
 - Meta Description: `Nous organisons vos trajets prive/pro avec verification des horaires et suivi. Frais de service clairs et confirmation rapide.`
 - Excerpt:
@@ -37,6 +41,7 @@ Usage: copy/paste these texts into your `service` and `subscription` posts in Wo
 `Nous prenons en charge la reservation de vos transports selon vos contraintes horaires, votre niveau de confort et votre destination. Nous verifions les details utiles (heure, point de depart, arrivage) et vous confirmons l'ensemble de la planification. Service utile pour rendez-vous, gares, aeroports, trajets clients et organisation familiale.`
 
 ### Coaching / organisation (sur devis)
+- Focus keyword: `coaching organisation quotidienne Paris`
 - SEO Title: `Coaching d'organisation du quotidien | Conciergerie by Isa`
 - Meta Description: `Accompagnement sur mesure pour structurer votre quotidien, vos priorites et vos routines.`
 - Excerpt:
@@ -47,24 +52,28 @@ Usage: copy/paste these texts into your `service` and `subscription` posts in Wo
 ## 2) Abonnements
 
 ### Bronze
+- Focus keyword: `abonnement conciergerie bronze`
 - SEO Title: `Abonnement Bronze conciergerie | Conciergerie by Isa`
 - Meta Description: `Une formule essentielle pour deleguer les demandes courantes et gagner du temps chaque semaine.`
 - Excerpt:
 `La formule Bronze couvre les besoins reguliers avec un budget maitrise.`
 
 ### Argent
+- Focus keyword: `abonnement conciergerie argent`
 - SEO Title: `Abonnement Argent conciergerie | Conciergerie by Isa`
 - Meta Description: `Un niveau de service renforce pour les foyers actifs et les agendas charges.`
 - Excerpt:
 `La formule Argent apporte plus de flexibilite et de disponibilite sur la semaine.`
 
 ### Or
+- Focus keyword: `abonnement conciergerie or`
 - SEO Title: `Abonnement Or conciergerie | Conciergerie by Isa`
 - Meta Description: `Service prioritaire et accompagnement avance pour une organisation sans friction.`
 - Excerpt:
 `La formule Or convient aux clients qui souhaitent deleguer davantage au quotidien.`
 
 ### Premium
+- Focus keyword: `abonnement conciergerie premium`
 - SEO Title: `Abonnement Premium conciergerie | Conciergerie by Isa`
 - Meta Description: `L'offre la plus complete pour une delegation maximale et un suivi prioritaire.`
 - Excerpt:
@@ -106,4 +115,3 @@ Usage: copy/paste these texts into your `service` and `subscription` posts in Wo
 ### Post 3
 - Title: `Services sur devis: comment fonctionne le premier echange`
 - Excerpt: `Pour les besoins personnalises, nous analysons vos contraintes et proposons une solution adaptee.`
-
