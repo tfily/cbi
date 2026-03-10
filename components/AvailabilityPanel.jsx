@@ -45,12 +45,12 @@ function stateClass(state) {
 }
 
 function stateLabel(state) {
-  if (state === "off") return "ferme";
-  if (state === "setup") return "a ouvrir";
+  if (state === "off") return "fermé";
+  if (state === "setup") return "à ouvrir";
   if (state === "available") return "ouvert";
   if (state === "limited") return "partiel";
   if (state === "full") return "complet";
-  return "ferme";
+  return "fermé";
 }
 
 const WORKING_HOUR_START = 8;
@@ -103,14 +103,14 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
   return (
     <section id="availability" className="rounded-3xl border border-neutral-200 bg-white p-5 md:p-6 shadow-sm">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-lg font-semibold text-neutral-900">Disponibilites hebdomadaires</h2>
+        <h2 className="text-lg font-semibold text-neutral-900">Disponibilités hebdomadaires</h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setWeekStart(addDays(weekStart, -7))}
             className="inline-flex items-center rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
           >
-            Semaine precedente
+            Semaine précédente
           </button>
           <button
             type="button"
@@ -127,11 +127,11 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
       </p>
 
       {loading ? (
-        <p className="text-sm text-neutral-500">Chargement des disponibilites...</p>
+        <p className="text-sm text-neutral-500">Chargement des disponibilités...</p>
       ) : error ? (
         <p className="text-sm text-rose-700">Erreur: {error}</p>
       ) : days.length === 0 ? (
-        <p className="text-sm text-neutral-500">Aucune disponibilite definie pour cette semaine.</p>
+        <p className="text-sm text-neutral-500">Aucune disponibilité définie pour cette semaine.</p>
       ) : (
         <div className="space-y-3">
           {days.map((day) => (
@@ -172,8 +172,8 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
                       : day.state;
                 const ctaDisabled = weekend || totalRemaining <= 0;
                 const availabilityText = weekend
-                  ? "0 creneau disponible"
-                  : `${Math.max(0, totalRemaining)} creneau${
+                  ? "0 créneau disponible"
+                  : `${Math.max(0, totalRemaining)} créneau${
                       Math.max(0, totalRemaining) > 1 ? "s" : ""
                     } disponible${Math.max(0, totalRemaining) > 1 ? "s" : ""}`;
                 return (
@@ -195,7 +195,7 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
                 <p className="text-xs text-neutral-500">{availabilityText}</p>
                 {ctaDisabled ? (
                   <span className="inline-flex items-center rounded-full border border-neutral-300 px-3 py-1 text-[11px] font-semibold text-neutral-400">
-                    {weekend ? "Indisponible (weekend)" : "0 creneau disponible"}
+                    {weekend ? "Indisponible (week-end)" : "0 créneau disponible"}
                   </span>
                 ) : (
                   <a

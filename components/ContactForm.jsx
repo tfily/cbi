@@ -413,7 +413,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     const payable = selectedService;
     if (!selectedServicePricing?.amountMinor) {
       setPayError(
-        "Ce service n a pas de tarif configure dans WordPress. Merci de nous contacter."
+        "Ce service n'a pas de tarif configuré dans WordPress. Merci de nous contacter."
       );
       return;
     }
@@ -434,7 +434,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       return;
     }
     if (availableSlots.length > 0 && !booking.timeSlot) {
-      setPayError("Merci de choisir un creneau disponible avant de payer.");
+      setPayError("Merci de choisir un créneau disponible avant de payer.");
       return;
     }
 
@@ -487,7 +487,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     const payable = selectedSubscriptionOption;
     if (!payable?.priceMinor) {
       setPayError(
-        "Cette formule n a pas de tarif configure dans WordPress. Merci de nous contacter."
+        "Cette formule n'a pas de tarif configuré dans WordPress. Merci de nous contacter."
       );
       return;
     }
@@ -508,7 +508,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       return;
     }
     if (availableSlots.length > 0 && !booking.timeSlot) {
-      setPayError("Merci de choisir un creneau disponible avant de payer.");
+      setPayError("Merci de choisir un créneau disponible avant de payer.");
       return;
     }
 
@@ -672,7 +672,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             <input
               type="text"
               name="time_slot"
-              placeholder={slotsLoading ? "Chargement des creneaux..." : "Ex: 09:00-10:00"}
+              placeholder={slotsLoading ? "Chargement des créneaux..." : "Ex : 09:00-10:00"}
               value={timeSlot}
               onChange={(event) => setTimeSlot(event.target.value)}
               className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -721,7 +721,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               ) : null}
               {selectedServicePricing?.bookingFeeMinor ? (
                 <p className="mt-2 text-xs text-neutral-300">
-                  Frais de reservation transport inclus:{" "}
+                  Frais de réservation transport inclus :{" "}
                   {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} €
                 </p>
               ) : null}
@@ -767,7 +767,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       {subscriptionOptions.length > 0 && (
         <div className="space-y-3">
           <label className="block text-xs font-medium mb-1">
-            Formule d abonnement (optionnel)
+            Formule d'abonnement (optionnel)
           </label>
           <select
             name="subscription_plan"
@@ -775,7 +775,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             onChange={(event) => setSubscriptionChoice(event.target.value)}
             className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
-            <option value="">Je souhaite discuter d une formule</option>
+              <option value="">Je souhaite discuter d'une formule</option>
             {subscriptionOptions.map((sub) => (
               <option key={sub.slug} value={sub.slug}>
                 {sub.label}

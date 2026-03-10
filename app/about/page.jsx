@@ -26,7 +26,7 @@ export async function generateMetadata() {
   const aboutPage = await getAboutPage().catch(() => null);
   const title = aboutPage?.title?.rendered
     ? cleanHtml(aboutPage.title.rendered)
-    : "A propos";
+    : "À propos";
   const description = buildExcerpt(
     aboutPage?.excerpt?.rendered || aboutPage?.content?.rendered,
     "Decouvrez notre conciergerie et notre facon de simplifier votre quotidien."
@@ -55,7 +55,7 @@ export default async function AboutPage() {
   const title =
     aboutPage?.title?.rendered && cleanHtml(aboutPage.title.rendered)
       ? cleanHtml(aboutPage.title.rendered)
-      : `A propos de ${siteInfo.name}`;
+      : `À propos de ${siteInfo.name}`;
 
   const introHtml = aboutPage?.excerpt?.rendered || null;
   const introText =
@@ -128,15 +128,15 @@ export default async function AboutPage() {
             <div className="space-y-4 text-sm text-neutral-700">
               <p>
                 Nous accompagnons des particuliers exigeants dans la gestion de leur foyer, de
-                leurs animaux et de leurs deplacements a Paris et en petite couronne. Notre equipe
+                leurs animaux et de leurs déplacements à Paris et en petite couronne. Notre équipe
                 construit des solutions sur-mesure, de l intention au moindre detail.
               </p>
               <p>
-                Nous prenons le temps de comprendre vos habitudes, vos priorites et votre rythme
+                Nous prenons le temps de comprendre vos habitudes, vos priorités et votre rythme
                 pour orchestrer des prestations fiables, discretes et rassurantes.
               </p>
               <p className="text-amber-800 font-semibold">
-                Ajoutez une page WordPress "A propos" pour personnaliser ce texte.
+                Ajoutez une page WordPress "À propos" pour personnaliser ce texte.
               </p>
             </div>
           )}

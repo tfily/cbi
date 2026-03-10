@@ -41,7 +41,7 @@ export default async function SubscriptionPage({ params }) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-16">
         <h1 className="text-2xl font-bold mb-4">Abonnement introuvable</h1>
-        <p className="mb-4">La formule recherchee n existe pas ou plus.</p>
+        <p className="mb-4">La formule recherchée n'existe pas ou plus.</p>
         <Link href="/" className="text-amber-800 hover:underline text-sm">
           Retour a l accueil
         </Link>

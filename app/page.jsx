@@ -146,7 +146,7 @@ export default async function HomePage() {
     const excerpt = aboutPage?.excerpt?.rendered || "";
     const title = aboutPage?.title?.rendered
       ? cleanHtml(aboutPage.title.rendered)
-      : "A propos";
+      : "À propos";
 
     return (
       <main className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -172,7 +172,7 @@ export default async function HomePage() {
               />
             ) : (
               <p className="text-sm text-neutral-700">
-                Ajoutez un extrait a la page "A propos" pour l afficher ici.
+                Ajoutez un extrait à la page "À propos" pour l'afficher ici.
               </p>
             )}
           </div>
@@ -219,11 +219,11 @@ export default async function HomePage() {
     <div className="grid md:grid-cols-3 gap-8 items-center">
       <div className="text-center md:text-left md:col-span-1">
         <h1 className="text-2xl md:text-4xl font-bold mb-6 leading-tight text-neutral-900">
-          Votre serenite, <br /> notre priorite
+          Votre sérénité, <br /> notre priorité
         </h1>
         <p className="text-neutral-800 mb-8 text-sm md:text-base leading-relaxed">
           {siteInfo.description ||
-            "Services de conciergerie personnalises pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos deplacements et loisirs."}
+            "Services de conciergerie personnalisés pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos déplacements et loisirs."}
         </p>
         <div className="flex flex-wrap justify-center md:justify-start gap-4">
           <a
@@ -236,7 +236,7 @@ export default async function HomePage() {
             href="/#subscriptions"
             className="inline-flex items-center px-5 py-3 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold hover:bg-amber-50 transition"
           >
-            Decouvrir les abonnements
+            Découvrir les abonnements
           </a>
         </div>
       </div>
@@ -246,14 +246,14 @@ export default async function HomePage() {
           Offre signature
         </p>
         <h2 className="text-2xl md:text-3xl font-bold mb-3">
-          Votre quotidien anticipe
+          Votre quotidien anticipé
         </h2>
         <p className="text-sm md:text-base italic mb-4">
-          "Chaque detail gere avant meme que vous le demandiez."
+          "Chaque détail géré avant même que vous le demandiez."
         </p>
         <p className="text-sm md:text-base leading-relaxed mb-5">
-          Courses, deplacements, gestion de la maison, animaux, reservations:
-          tout est pris en charge avec discretion et efficacite.
+          Courses, déplacements, gestion de la maison, animaux, réservations :
+          tout est pris en charge avec discrétion et efficacité.
         </p>
         <a
           href={`/?subscription=${encodeURIComponent(signatureSubscriptionSlug)}#contact`}
