@@ -426,11 +426,11 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       return;
     }
     if (!booking.scheduledDate) {
-      setPayError("Merci de choisir une date d intervention avant de payer.");
+      setPayError("Merci de choisir une date d'intervention avant de payer.");
       return;
     }
     if (isWeekendDate(booking.scheduledDate)) {
-      setPayError("Les interventions ne sont pas disponibles le weekend.");
+      setPayError("Les interventions ne sont pas disponibles le week-end.");
       return;
     }
     if (availableSlots.length > 0 && !booking.timeSlot) {
@@ -500,11 +500,11 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       return;
     }
     if (!booking.scheduledDate) {
-      setPayError("Merci de choisir une date d intervention avant de payer.");
+      setPayError("Merci de choisir une date d'intervention avant de payer.");
       return;
     }
     if (isWeekendDate(booking.scheduledDate)) {
-      setPayError("Les interventions ne sont pas disponibles le weekend.");
+      setPayError("Les interventions ne sont pas disponibles le week-end.");
       return;
     }
     if (availableSlots.length > 0 && !booking.timeSlot) {
@@ -579,7 +579,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       return;
     }
     if (isWeekendDate(payload.scheduledDate)) {
-      setSubmitStatus("Les interventions ne sont pas disponibles le weekend.");
+      setSubmitStatus("Les interventions ne sont pas disponibles le week-end.");
       return;
     }
 
@@ -639,7 +639,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium mb-1">
-            Date d intervention
+            Date d'intervention
           </label>
           <input
             type="date"
@@ -661,7 +661,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               onChange={(event) => setTimeSlot(event.target.value)}
               className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
-              <option value="">Choisir un creneau</option>
+              <option value="">Choisir un créneau</option>
               {availableSlots.map((slot) => (
                 <option key={slot.slot} value={slot.slot}>
                   {slot.slot}
@@ -806,7 +806,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           rows={4}
           name="message"
           className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-          placeholder="Précisez la date souhaitée, l adresse, les horaires, etc."
+          placeholder="Précisez la date souhaitée, l'adresse, les horaires, etc."
         />
       </div>
 

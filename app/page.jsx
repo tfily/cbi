@@ -513,12 +513,35 @@ export default async function HomePage() {
                   {new Date(item.date).toLocaleDateString("fr-FR")}
                 </p>
                 <h3 className="text-lg font-semibold mb-2">
-                  {cleanHtml(item.title.rendered)}
+                  {item.link ? (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-amber-800"
+                    >
+                      {cleanHtml(item.title.rendered)}
+                    </a>
+                  ) : (
+                    cleanHtml(item.title.rendered)
+                  )}
                 </h3>
                 <div
                   className="text-sm text-neutral-700 prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{ __html: item.excerpt.rendered }}
                 />
+                {item.link ? (
+                  <div className="mt-3">
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex text-sm font-semibold text-amber-800 hover:underline"
+                    >
+                      Lire l’article
+                    </a>
+                  </div>
+                ) : null}
               </article>
             ))}
           </div>
