@@ -1,4 +1,8 @@
-import { getServiceSlugs, getSubscriptionSlugs } from "../lib/wordpress";
+import {
+  getPostSlugs,
+  getServiceSlugs,
+  getSubscriptionSlugs,
+} from "../lib/wordpress";
 
 function getBaseUrl() {
   const fromEnv =
@@ -21,9 +25,10 @@ export default async function sitemap() {
     },
   ];
 
-  const [serviceSlugs, subscriptionSlugs] = await Promise.all([
+  const [serviceSlugs, subscriptionSlugs, postSlugs] = await Promise.all([
     getServiceSlugs().catch(() => []),
     getSubscriptionSlugs().catch(() => []),
+    getPostSlugs().catch(() => []),
   ]);
 
   const serviceRoutes = (serviceSlugs || []).map((slug) => ({
@@ -40,6 +45,12 @@ export default async function sitemap() {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...serviceRoutes, ...subscriptionRoutes];
-}
+  const postRoutes = (postSlugs || []).map((slug) => ({
+    url: `${baseUrl}/actualites/${slug}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
 
+  return [...staticRoutes, ...serviceRoutes, ...subscriptionRoutes, ...postRoutes];
+}

@@ -513,11 +513,9 @@ export default async function HomePage() {
                   {new Date(item.date).toLocaleDateString("fr-FR")}
                 </p>
                 <h3 className="text-lg font-semibold mb-2">
-                  {item.link ? (
+                  {item.slug ? (
                     <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noreferrer"
+                      href={`/actualites/${item.slug}`}
                       className="hover:text-amber-800"
                     >
                       {cleanHtml(item.title.rendered)}
@@ -530,12 +528,10 @@ export default async function HomePage() {
                   className="text-sm text-neutral-700 prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{ __html: item.excerpt.rendered }}
                 />
-                {item.link ? (
+                {item.slug ? (
                   <div className="mt-3">
                     <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noreferrer"
+                      href={`/actualites/${item.slug}`}
                       className="inline-flex text-sm font-semibold text-amber-800 hover:underline"
                     >
                       Lire l’article
