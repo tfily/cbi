@@ -252,6 +252,31 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     [subscriptions]
   );
 
+  useEffect(() => {
+    if (!selectedSubscription) return;
+    if ((subscriptionOptions || []).some((o) => o.slug === selectedSubscription)) {
+      setSubscriptionChoice(selectedSubscription);
+      return;
+    }
+    const aliases = {
+      proactif: "premium",
+      offre_signature: "premium",
+      offresignature: "premium",
+    };
+    const aliasSlug = aliases[normalizeKey(selectedSubscription).replace(/\s+/g, "_")];
+    if (aliasSlug && (subscriptionOptions || []).some((o) => o.slug === aliasSlug)) {
+      setSubscriptionChoice(aliasSlug);
+      return;
+    }
+    const normalizedQuery = normalizeKey(selectedSubscription);
+    const aliasMatch = (subscriptionOptions || []).find((o) =>
+      normalizeKey(o.label).includes(normalizedQuery)
+    );
+    if (aliasMatch) {
+      setSubscriptionChoice(aliasMatch.slug);
+    }
+  }, [selectedSubscription, subscriptionOptions]);
+
   const selectedService = useMemo(
     () => options.find((o) => o.slug === serviceChoice),
     [options, serviceChoice]
@@ -697,7 +722,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               {selectedServicePricing?.bookingFeeMinor ? (
                 <p className="mt-2 text-xs text-neutral-300">
                   Frais de reservation transport inclus:{" "}
-                  {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} EUR
+                  {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} €
                 </p>
               ) : null}
               {selectedServiceHeadlinePrice ? (

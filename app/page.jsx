@@ -116,6 +116,28 @@ function isPlaceholderNewsItem(item) {
   return false;
 }
 
+function pickSignatureSubscriptionSlug(subscriptions) {
+  const items = Array.isArray(subscriptions) ? subscriptions : [];
+  if (!items.length) return "premium";
+
+  const byPrice = items.find((sub) => {
+    const price = String(sub?.meta?.cbi_price || "")
+      .replace(",", ".")
+      .replace(/[^\d.]/g, "");
+    const numeric = Number(price);
+    return !Number.isNaN(numeric) && numeric === 299;
+  });
+  if (byPrice?.slug) return byPrice.slug;
+
+  const byLabel = items.find((sub) => {
+    const label = normalizeKey(cleanHtml(sub?.title?.rendered || ""));
+    return label.includes("proactif") || label.includes("offre signature");
+  });
+  if (byLabel?.slug) return byLabel.slug;
+
+  return items[0]?.slug || "premium";
+}
+
 export default async function HomePage() {
   const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
 
@@ -167,6 +189,7 @@ export default async function HomePage() {
     getSiteInfo().catch(() => ({ name: "Conciergerie by Isa", description: "" })),
   ]);
   const visibleNews = (news || []).filter((item) => !isPlaceholderNewsItem(item));
+  const signatureSubscriptionSlug = pickSignatureSubscriptionSlug(subscriptions);
 
   // Choose a random hero image among several lifestyle variants
   const heroImages = [
@@ -192,33 +215,53 @@ export default async function HomePage() {
   <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#f3e0bc]/95 via-[#e0c38f]/85 to-[#cba26a]/90" />
 
   {/* Content */}
-  <div className="relative z-20 max-w-3xl mx-auto px-4 py-24 md:py-32 text-center">
-    <p className="uppercase tracking-[0.25em] text-xs text-amber-700 mb-4">
-      {siteInfo.name}
-    </p>
+  <div className="relative z-20 max-w-5xl mx-auto px-4 py-20 md:py-28">
+    <div className="grid md:grid-cols-3 gap-8 items-center">
+      <div className="text-center md:text-left md:col-span-1">
+        <h1 className="text-2xl md:text-4xl font-bold mb-6 leading-tight text-neutral-900">
+          Votre serenite, <br /> notre priorite
+        </h1>
+        <p className="text-neutral-800 mb-8 text-sm md:text-base leading-relaxed">
+          {siteInfo.description ||
+            "Services de conciergerie personnalises pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos deplacements et loisirs."}
+        </p>
+        <div className="flex flex-wrap justify-center md:justify-start gap-4">
+          <a
+            href="/#contact"
+            className="inline-flex items-center px-5 py-3 rounded-full bg-amber-700 text-white text-sm font-semibold shadow-sm hover:bg-amber-800 transition"
+          >
+            Demander un service
+          </a>
+          <a
+            href="/#subscriptions"
+            className="inline-flex items-center px-5 py-3 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold hover:bg-amber-50 transition"
+          >
+            Decouvrir les abonnements
+          </a>
+        </div>
+      </div>
 
-    <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-neutral-900">
-      Votre sérénité, <br /> notre priorité
-    </h1>
-
-    <p className="text-neutral-800 mb-8 text-sm md:text-base leading-relaxed">
-      {siteInfo.description ||
-        "Services de conciergerie personnalisés pour simplifier votre quotidien, prendre soin de votre foyer, de vos animaux et organiser vos déplacements et loisirs."}
-    </p>
-
-    <div className="flex flex-wrap justify-center gap-4">
-      <a
-        href="/#contact"
-        className="inline-flex items-center px-5 py-3 rounded-full bg-amber-700 text-white text-sm font-semibold shadow-sm hover:bg-amber-800 transition"
-      >
-        Demander un service
-      </a>
-      <a
-        href="/#subscriptions"
-        className="inline-flex items-center px-5 py-3 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold hover:bg-amber-50 transition"
-      >
-        Découvrir les abonnements
-      </a>
+      <div className="rounded-2xl border border-amber-900/20 bg-white/75 backdrop-blur-sm p-6 md:p-7 text-neutral-900 md:col-span-2">
+        <p className="uppercase tracking-[0.2em] text-[11px] text-amber-800 font-semibold mb-3">
+          Offre signature
+        </p>
+        <h2 className="text-2xl md:text-3xl font-bold mb-3">
+          Votre quotidien anticipe
+        </h2>
+        <p className="text-sm md:text-base italic mb-4">
+          "Chaque detail gere avant meme que vous le demandiez."
+        </p>
+        <p className="text-sm md:text-base leading-relaxed mb-5">
+          Courses, deplacements, gestion de la maison, animaux, reservations:
+          tout est pris en charge avec discretion et efficacite.
+        </p>
+        <a
+          href={`/?subscription=${encodeURIComponent(signatureSubscriptionSlug)}#contact`}
+          className="inline-flex items-center rounded-full border border-amber-700/40 bg-white px-3 py-1 text-sm font-semibold text-neutral-900 hover:bg-amber-50 transition"
+        >
+          Offre Signature: 299 € / mois
+        </a>
+      </div>
     </div>
   </div>
 </section>
