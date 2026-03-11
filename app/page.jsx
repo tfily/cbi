@@ -138,6 +138,26 @@ function pickSignatureSubscriptionSlug(subscriptions) {
   return items[0]?.slug || "premium";
 }
 
+function getSignatureOfferText(subscriptions, signatureSlug) {
+  const items = Array.isArray(subscriptions) ? subscriptions : [];
+  const signature = items.find((sub) => sub?.slug === signatureSlug) || items[0];
+  if (!signature) return "";
+
+  const candidates = [
+    signature?.meta?.cbi_signature_pitch,
+    signature?.meta?.cbi_offer_text,
+    signature?.excerpt?.rendered,
+    signature?.content?.rendered,
+  ];
+
+  for (const candidate of candidates) {
+    const cleaned = cleanHtml(candidate).replace(/\s+/g, " ").trim();
+    if (cleaned) return cleaned;
+  }
+
+  return "";
+}
+
 export default async function HomePage() {
   const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
 
@@ -190,6 +210,9 @@ export default async function HomePage() {
   ]);
   const visibleNews = (news || []).filter((item) => !isPlaceholderNewsItem(item));
   const signatureSubscriptionSlug = pickSignatureSubscriptionSlug(subscriptions);
+  const signatureOfferText =
+    getSignatureOfferText(subscriptions, signatureSubscriptionSlug) ||
+    "Courses, déplacements, animaux, réservations : tout est pris en charge avec discrétion et efficacité.";
 
   // Choose a random hero image among several lifestyle variants
   const heroImages = [
@@ -252,8 +275,7 @@ export default async function HomePage() {
           "Chaque détail géré avant même que vous le demandiez."
         </p>
         <p className="text-sm md:text-base leading-relaxed mb-5">
-          Courses, déplacements, gestion de la maison, animaux, réservations :
-          tout est pris en charge avec discrétion et efficacité.
+          {signatureOfferText}
         </p>
         <a
           href={`/?subscription=${encodeURIComponent(signatureSubscriptionSlug)}#contact`}
