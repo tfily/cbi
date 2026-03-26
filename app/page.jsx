@@ -6,6 +6,7 @@ import {
   getSiteInfo,
   getAboutPage,
 } from "../lib/wordpress";
+import { getVisibleProviders } from "../data/providers";
 import ContactForm from "../components/ContactForm";
 import { Suspense } from "react";
 import Image from "next/image";
@@ -209,6 +210,7 @@ export default async function HomePage() {
     getSiteInfo().catch(() => ({ name: "Conciergerie by Isa", description: "" })),
   ]);
   const visibleNews = (news || []).filter((item) => !isPlaceholderNewsItem(item));
+  const providerCategories = getVisibleProviders();
   const signatureSubscriptionSlug = pickSignatureSubscriptionSlug(subscriptions);
   const signatureOfferText =
     getSignatureOfferText(subscriptions, signatureSubscriptionSlug) ||
@@ -566,6 +568,51 @@ export default async function HomePage() {
         </section>
       ) : null}
 
+      {providerCategories.length > 0 ? (
+        <section className="max-w-5xl mx-auto px-4 py-12 md:py-16">
+          <div className="flex items-baseline justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Prestataires par catégorie</h2>
+              <p className="text-sm text-neutral-600">
+                Un répertoire simple à compléter par famille de besoin.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {providerCategories.map((category) => (
+              <section
+                key={category.slug}
+                className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
+              >
+                <h3 className="text-lg font-semibold mb-1">{category.label}</h3>
+                <p className="text-sm text-neutral-600 mb-4">{category.description}</p>
+                <div className="space-y-4">
+                  {category.providers.map((provider) => (
+                    <article
+                      key={`${category.slug}-${provider.name}`}
+                      className="rounded-xl border border-neutral-100 bg-neutral-50 p-4"
+                    >
+                      <h4 className="font-semibold text-neutral-900">{provider.name}</h4>
+                      {provider.services?.length ? (
+                        <p className="mt-1 text-sm text-neutral-700">
+                          {provider.services.join(" · ")}
+                        </p>
+                      ) : null}
+                      <div className="mt-2 space-y-1 text-sm text-neutral-600">
+                        {provider.phone ? <p>{provider.phone}</p> : null}
+                        {provider.email ? <p>{provider.email}</p> : null}
+                        {provider.city ? <p>{provider.city}</p> : null}
+                        {provider.notes ? <p>{provider.notes}</p> : null}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {/* Contact form */}
       <section
         id="contact"
@@ -577,6 +624,28 @@ export default async function HomePage() {
             Décrivez votre besoin, choisissez un type de service et nous vous recontactons pour
             confirmer la prestation et le tarif.
           </p>
+          <div className="mb-8 rounded-3xl border border-amber-500/25 bg-gradient-to-br from-amber-500/15 via-amber-400/5 to-transparent p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-xl">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-200">
+                  Demande hors catalogue
+                </p>
+                <h3 className="mb-2 text-lg font-semibold text-white">
+                  Un besoin particulier ?
+                </h3>
+                <p className="text-sm leading-relaxed text-neutral-300">
+                  Décrivez votre besoin. Nous l&apos;enregistrons et revenons
+                  vers vous rapidement.
+                </p>
+              </div>
+              <a
+                href="/?custom_request=1#contact"
+                className="inline-flex items-center justify-center rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
+              >
+                Demander un service sur-mesure
+              </a>
+            </div>
+          </div>
 
           <Suspense
             fallback={

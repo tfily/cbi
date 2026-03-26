@@ -18,6 +18,40 @@ function getAuthHeader() {
   return `Basic ${token}`;
 }
 
+function formatLine(label, value) {
+  if (!value) return "";
+  return `${label}: ${value}`;
+}
+
+function formatFrequency(value) {
+  const map = {
+    one_off: "Besoin ponctuel",
+    weekly: "Chaque semaine",
+    monthly: "Chaque mois",
+    custom: "Rythme a definir",
+  };
+  return map[value] || value || "";
+}
+
+function formatUrgency(value) {
+  const map = {
+    asap: "Des que possible",
+    this_week: "Cette semaine",
+    this_month: "Ce mois-ci",
+    flexible: "Flexible",
+  };
+  return map[value] || value || "";
+}
+
+function formatPreferredContact(value) {
+  const map = {
+    phone: "Telephone",
+    email: "Email",
+    whatsapp: "WhatsApp",
+  };
+  return map[value] || value || "";
+}
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -27,6 +61,16 @@ export async function POST(request) {
       phone,
       serviceSlug,
       subscriptionSlug,
+      scheduledDate,
+      timeSlot,
+      requestType,
+      customServiceTitle,
+      customServiceDetails,
+      location,
+      frequency,
+      budget,
+      preferredContact,
+      urgency,
       message,
     } = body || {};
 
@@ -53,9 +97,40 @@ export async function POST(request) {
       );
     }
 
+    const isCustomRequest = requestType === "custom_service";
+
+    const contentSections = [
+      isCustomRequest ? "Demande de service sur-mesure" : "Demande de service",
+      "",
+      formatLine("Nom", name || ""),
+      formatLine("Email", email),
+      formatLine("Telephone", phone || ""),
+      formatLine("Date souhaitee", scheduledDate || ""),
+      formatLine("Creneau", timeSlot || ""),
+      formatLine("Service", serviceSlug || ""),
+      formatLine("Abonnement", subscriptionSlug || ""),
+      formatLine("Service sur-mesure", customServiceTitle || ""),
+      formatLine("Lieu", location || ""),
+      formatLine("Frequence", formatFrequency(frequency)),
+      formatLine("Budget", budget || ""),
+      formatLine(
+        "Contact prefere",
+        formatPreferredContact(preferredContact)
+      ),
+      formatLine("Urgence", formatUrgency(urgency)),
+      "",
+      "Message client:",
+      message,
+      customServiceDetails
+        ? `\nDetails complementaires:\n${customServiceDetails}`
+        : "",
+    ].filter(Boolean);
+
     const payload = {
-      title: `Demande - ${name || email}`,
-      content: message,
+      title: isCustomRequest
+        ? `Service sur-mesure - ${customServiceTitle || name || email}`
+        : `Demande - ${name || email}`,
+      content: contentSections.join("\n"),
       status: "publish",
       meta: {
         cbi_name: name || "",
@@ -63,6 +138,16 @@ export async function POST(request) {
         cbi_phone: phone || "",
         cbi_service_slug: serviceSlug || "",
         cbi_subscription_slug: subscriptionSlug || "",
+        cbi_request_type: isCustomRequest ? "custom_service" : "standard",
+        cbi_scheduled_date: scheduledDate || "",
+        cbi_time_slot: timeSlot || "",
+        cbi_custom_service_title: customServiceTitle || "",
+        cbi_custom_service_details: customServiceDetails || "",
+        cbi_location: location || "",
+        cbi_frequency: frequency || "",
+        cbi_budget: budget || "",
+        cbi_preferred_contact: preferredContact || "",
+        cbi_urgency: urgency || "",
       },
     };
 

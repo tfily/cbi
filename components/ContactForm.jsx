@@ -198,11 +198,15 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   const paymentsEnabled = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED !== "false";
   const selectedSlug = searchParams.get("service") || "";
   const selectedSubscription = searchParams.get("subscription") || "";
+  const initialCustomRequest =
+    searchParams.get("custom_request") === "1" ||
+    selectedSlug === "custom-request";
   const selectedPriceMode = searchParams.get("price_mode") || "";
   const selectedDate = searchParams.get("scheduled_date") || "";
   const selectedTimeSlot = searchParams.get("time_slot") || "";
   const [serviceChoice, setServiceChoice] = useState(selectedSlug);
   const [subscriptionChoice, setSubscriptionChoice] = useState(selectedSubscription);
+  const [isCustomRequest, setIsCustomRequest] = useState(initialCustomRequest);
   const [servicePricingMode, setServicePricingMode] = useState(
     selectedPriceMode || "unit"
   );
@@ -276,6 +280,13 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       setSubscriptionChoice(aliasMatch.slug);
     }
   }, [selectedSubscription, subscriptionOptions]);
+
+  useEffect(() => {
+    if (selectedSlug === "custom-request") {
+      setIsCustomRequest(true);
+      setServiceChoice("");
+    }
+  }, [selectedSlug]);
 
   const selectedService = useMemo(
     () => options.find((o) => o.slug === serviceChoice),
@@ -405,6 +416,13 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       scheduledDate: String(data.get("scheduled_date") || "").trim(),
       timeSlot: String(data.get("time_slot") || "").trim(),
       message: String(data.get("message") || "").trim(),
+      customServiceTitle: String(data.get("custom_service_title") || "").trim(),
+      customServiceDetails: String(data.get("custom_service_details") || "").trim(),
+      location: String(data.get("location") || "").trim(),
+      frequency: String(data.get("frequency") || "").trim(),
+      budget: String(data.get("budget") || "").trim(),
+      preferredContact: String(data.get("preferred_contact") || "").trim(),
+      urgency: String(data.get("urgency") || "").trim(),
     };
   }
 
@@ -566,16 +584,28 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       name: booking.name,
       email: booking.email,
       phone: booking.phone,
-      serviceSlug: serviceChoice || "",
+      serviceSlug: isCustomRequest ? "" : serviceChoice || "",
       subscriptionSlug: subscriptionChoice || "",
       scheduledDate: booking.scheduledDate,
       timeSlot: booking.timeSlot,
       message: booking.message,
       pricingOption: selectedServicePricing?.mode || "unit",
+      requestType: isCustomRequest ? "custom_service" : "standard",
+      customServiceTitle: booking.customServiceTitle,
+      customServiceDetails: booking.customServiceDetails,
+      location: booking.location,
+      frequency: booking.frequency,
+      budget: booking.budget,
+      preferredContact: booking.preferredContact,
+      urgency: booking.urgency,
     };
 
     if (!payload.email || !payload.message) {
       setSubmitStatus("Merci de renseigner votre email et votre demande.");
+      return;
+    }
+    if (payload.requestType === "custom_service" && !payload.customServiceTitle) {
+      setSubmitStatus("Merci de préciser le service sur-mesure recherché.");
       return;
     }
     if (isWeekendDate(payload.scheduledDate)) {
@@ -602,6 +632,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       setSubscriptionChoice("");
       setScheduledDate("");
       setTimeSlot("");
+      setIsCustomRequest(false);
     } catch (error) {
       setSubmitStatus(error?.message || "Une erreur est survenue.");
     } finally {
@@ -615,6 +646,39 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       className="space-y-4"
       onSubmit={handleSubmit}
     >
+      <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-200">
+              Besoin spécifique
+            </p>
+            <h3 className="text-base font-semibold text-white">
+              Vous ne trouvez pas le bon service ?
+            </h3>
+            <p className="text-sm leading-relaxed text-neutral-300">
+              Decrivez votre besoin sur-mesure. Nous l&apos;enregistrons et vous
+              recontactons rapidement.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setIsCustomRequest((current) => !current);
+              setServiceChoice("");
+            }}
+            className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition ${
+              isCustomRequest
+                ? "border border-amber-300 text-amber-100 hover:bg-amber-500/10"
+                : "bg-amber-500 text-neutral-950 hover:bg-amber-400"
+            }`}
+          >
+            {isCustomRequest
+              ? "Revenir au catalogue"
+              : "Suggérer un service"}
+          </button>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium mb-1">Nom complet</label>
@@ -692,7 +756,11 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         </div>
         <div>
           <label className="block text-xs font-medium mb-1">Type de service</label>
-          {options.length ? (
+          {isCustomRequest ? (
+            <div className="rounded-lg border border-dashed border-amber-500/40 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-300">
+              Mode sur-mesure actif. Décrivez votre besoin dans les champs ci-dessous.
+            </div>
+          ) : options.length ? (
             <>
               <select
                 name="service_type"
@@ -763,6 +831,95 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           )}
         </div>
       </div>
+
+      {isCustomRequest ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium mb-1">
+              Service recherché
+            </label>
+            <input
+              type="text"
+              name="custom_service_title"
+              required={isCustomRequest}
+              placeholder="Ex : accompagnement événement, aide ponctuelle, mission exceptionnelle"
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">Lieu / secteur</label>
+            <input
+              type="text"
+              name="location"
+              placeholder="Ville, quartier ou adresse approximative"
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">Fréquence</label>
+            <select
+              name="frequency"
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              defaultValue=""
+            >
+              <option value="">Ponctuel ou récurrent ?</option>
+              <option value="one_off">Besoin ponctuel</option>
+              <option value="weekly">Chaque semaine</option>
+              <option value="monthly">Chaque mois</option>
+              <option value="custom">Rythme à définir</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">Budget estimatif</label>
+            <input
+              type="text"
+              name="budget"
+              placeholder="Ex : 80-120 € ou sur devis"
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">
+              Préférence de contact
+            </label>
+            <select
+              name="preferred_contact"
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              defaultValue=""
+            >
+              <option value="">Choisir</option>
+              <option value="phone">Téléphone</option>
+              <option value="email">Email</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">Urgence</label>
+            <select
+              name="urgency"
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              defaultValue=""
+            >
+              <option value="">Choisir</option>
+              <option value="asap">Dès que possible</option>
+              <option value="this_week">Cette semaine</option>
+              <option value="this_month">Ce mois-ci</option>
+              <option value="flexible">Flexible</option>
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-medium mb-1">
+              Détails du service sur-mesure
+            </label>
+            <textarea
+              rows={4}
+              name="custom_service_details"
+              placeholder="Contexte, contraintes, attentes, volume estimé, horaires, personnes concernées..."
+              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+        </div>
+      ) : null}
 
       {subscriptionOptions.length > 0 && (
         <div className="space-y-3">
