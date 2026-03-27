@@ -159,8 +159,17 @@ function getSignatureOfferText(subscriptions, signatureSlug) {
   return "";
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }) {
   const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
+  const resolvedSearchParams = (await searchParams) || {};
+  const customRequestParam =
+    typeof resolvedSearchParams.custom_request === "string"
+      ? resolvedSearchParams.custom_request
+      : Array.isArray(resolvedSearchParams.custom_request)
+        ? resolvedSearchParams.custom_request[0]
+        : "";
+  const isCustomRequestActive =
+    customRequestParam === "1" || customRequestParam === "2";
 
   if (maintenanceMode) {
     const aboutPage = await getAboutPage().catch(() => null);
@@ -639,10 +648,16 @@ export default async function HomePage() {
                 </p>
               </div>
               <a
-                href="/?custom_request=1#contact"
+                href={
+                  isCustomRequestActive
+                    ? "/#contact"
+                    : "/?custom_request=1#contact"
+                }
                 className="inline-flex items-center justify-center rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
               >
-                Demander un service sur-mesure
+                {isCustomRequestActive
+                  ? "Revenir au catalogue"
+                  : "Demander un service sur-mesure"}
               </a>
             </div>
           </div>

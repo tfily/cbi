@@ -52,6 +52,13 @@ export default async function PaymentReturnPage({ searchParams }) {
   const statusLabel = STATUS_LABELS[status] || "Paiement en cours de traitement";
   const badgeStyle =
     STATUS_BADGES[status] || "bg-neutral-100 text-neutral-700 border-neutral-200";
+  const billingEmail = order?.billing?.email || "";
+  const feedbackUrl =
+    orderId && ["processing", "completed"].includes(status)
+      ? `/feedback?orderId=${encodeURIComponent(orderId)}${
+          billingEmail ? `&email=${encodeURIComponent(billingEmail)}` : ""
+        }`
+      : "";
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -107,6 +114,14 @@ export default async function PaymentReturnPage({ searchParams }) {
         ) : null}
 
         <div className="flex flex-wrap gap-3">
+          {feedbackUrl ? (
+            <a
+              href={feedbackUrl}
+              className="inline-flex items-center px-5 py-2.5 rounded-full bg-emerald-700 text-white text-sm font-semibold"
+            >
+              Laisser un avis
+            </a>
+          ) : null}
           <a
             href="/#contact"
             className="inline-flex items-center px-5 py-2.5 rounded-full bg-amber-700 text-white text-sm font-semibold"

@@ -198,8 +198,10 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   const paymentsEnabled = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED !== "false";
   const selectedSlug = searchParams.get("service") || "";
   const selectedSubscription = searchParams.get("subscription") || "";
+  const customRequestParam = searchParams.get("custom_request");
   const initialCustomRequest =
-    searchParams.get("custom_request") === "1" ||
+    customRequestParam === "1" ||
+    customRequestParam === "2" ||
     selectedSlug === "custom-request";
   const selectedPriceMode = searchParams.get("price_mode") || "";
   const selectedDate = searchParams.get("scheduled_date") || "";
@@ -646,39 +648,6 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       className="space-y-4"
       onSubmit={handleSubmit}
     >
-      <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-200">
-              Besoin spécifique
-            </p>
-            <h3 className="text-base font-semibold text-white">
-              Vous ne trouvez pas le bon service ?
-            </h3>
-            <p className="text-sm leading-relaxed text-neutral-300">
-              Decrivez votre besoin sur-mesure. Nous l&apos;enregistrons et vous
-              recontactons rapidement.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setIsCustomRequest((current) => !current);
-              setServiceChoice("");
-            }}
-            className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition ${
-              isCustomRequest
-                ? "border border-amber-300 text-amber-100 hover:bg-amber-500/10"
-                : "bg-amber-500 text-neutral-950 hover:bg-amber-400"
-            }`}
-          >
-            {isCustomRequest
-              ? "Revenir au catalogue"
-              : "Suggérer un service"}
-          </button>
-        </div>
-      </div>
-
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium mb-1">Nom complet</label>
@@ -757,8 +726,14 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         <div>
           <label className="block text-xs font-medium mb-1">Type de service</label>
           {isCustomRequest ? (
-            <div className="rounded-lg border border-dashed border-amber-500/40 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-300">
-              Mode sur-mesure actif. Décrivez votre besoin dans les champs ci-dessous.
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-amber-500/40 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-300">
+              <span>Mode sur-mesure actif. Décrivez votre besoin dans les champs ci-dessous.</span>
+              <a
+                href="/#contact"
+                className="shrink-0 text-xs font-semibold text-amber-200 hover:underline"
+              >
+                Revenir au catalogue
+              </a>
             </div>
           ) : options.length ? (
             <>

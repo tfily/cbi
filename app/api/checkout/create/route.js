@@ -43,6 +43,13 @@ function buildReturnUrl(request, orderId) {
   return `${base.replace(/\/$/, "")}/payment/return?orderId=${orderId}`;
 }
 
+function resolvePublicSiteUrl(request) {
+  const requestBase = resolveRequestBaseUrl(request);
+  const configuredBase =
+    process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "";
+  return (requestBase || configuredBase || "").replace(/\/$/, "");
+}
+
 function readOrderMeta(order, key) {
   return (
     (order?.meta_data || []).find((entry) => entry?.key === key)?.value || ""
@@ -184,6 +191,7 @@ export async function POST(request) {
         { key: "scheduled_date", value: scheduledDate },
         { key: "time_slot", value: timeSlot || "" },
         { key: "payment_provider", value: "CAWL" },
+        { key: "review_url_base", value: resolvePublicSiteUrl(request) },
       ],
     };
 

@@ -18,6 +18,10 @@ function cbi_contact_request_post_types() {
 	return array( 'contact-request', 'contact_request', 'contact-requests' );
 }
 
+function cbi_feedback_post_type() {
+	return 'cbi-feedback';
+}
+
 function cbi_contact_request_meta_keys() {
 	return array(
 		'cbi_name'                   => 'string',
@@ -38,6 +42,36 @@ function cbi_contact_request_meta_keys() {
 		'cbi_admin_notified'         => 'string',
 	);
 }
+
+function cbi_feedback_meta_keys() {
+	return array(
+		'cbi_order_id'            => 'string',
+		'cbi_rating'              => 'string',
+		'cbi_customer_name'       => 'string',
+		'cbi_customer_email'      => 'string',
+		'cbi_feedback_message'    => 'string',
+		'cbi_feedback_publish_ok' => 'string',
+	);
+}
+
+function cbi_register_feedback_post_type() {
+	register_post_type(
+		cbi_feedback_post_type(),
+		array(
+			'labels'       => array(
+				'name'          => 'Avis clients',
+				'singular_name' => 'Avis client',
+			),
+			'public'       => false,
+			'show_ui'      => true,
+			'show_in_rest' => true,
+			'rest_base'    => 'cbi-feedback',
+			'supports'     => array( 'title', 'editor' ),
+			'menu_icon'    => 'dashicons-star-filled',
+		)
+	);
+}
+add_action( 'init', 'cbi_register_feedback_post_type' );
 
 function cbi_seo_register_meta() {
 	$meta_keys = array(
@@ -83,6 +117,22 @@ function cbi_seo_register_meta() {
 			);
 		}
 	}
+
+	foreach ( cbi_feedback_meta_keys() as $key => $type ) {
+		register_post_meta(
+			cbi_feedback_post_type(),
+			$key,
+			array(
+				'type'              => $type,
+				'single'            => true,
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'sanitize_textarea_field',
+				'auth_callback'     => function() {
+					return current_user_can( 'edit_posts' );
+				},
+			)
+		);
+	}
 }
 add_action( 'init', 'cbi_seo_register_meta' );
 
@@ -112,6 +162,15 @@ function cbi_seo_add_metabox() {
 			'high'
 		);
 	}
+
+	add_meta_box(
+		'cbi_feedback_box',
+		'CBI Avis client',
+		'cbi_render_feedback_metabox',
+		cbi_feedback_post_type(),
+		'normal',
+		'high'
+	);
 }
 add_action( 'add_meta_boxes', 'cbi_seo_add_metabox' );
 
@@ -135,6 +194,30 @@ function cbi_render_contact_request_metabox( $post ) {
 	);
 
 	echo '<div class="cbi-contact-request-fields">';
+	foreach ( $fields as $label => $value ) {
+		if ( '' === (string) $value ) {
+			continue;
+		}
+
+		echo '<p>';
+		echo '<strong>' . esc_html( $label ) . ':</strong><br />';
+		echo nl2br( esc_html( $value ) );
+		echo '</p>';
+	}
+	echo '</div>';
+}
+
+function cbi_render_feedback_metabox( $post ) {
+	$fields = array(
+		'Commande'               => get_post_meta( $post->ID, 'cbi_order_id', true ),
+		'Note'                   => get_post_meta( $post->ID, 'cbi_rating', true ),
+		'Nom client'             => get_post_meta( $post->ID, 'cbi_customer_name', true ),
+		'Email client'           => get_post_meta( $post->ID, 'cbi_customer_email', true ),
+		'Publication autorisee'  => get_post_meta( $post->ID, 'cbi_feedback_publish_ok', true ),
+		'Message'                => get_post_meta( $post->ID, 'cbi_feedback_message', true ),
+	);
+
+	echo '<div class="cbi-feedback-fields">';
 	foreach ( $fields as $label => $value ) {
 		if ( '' === (string) $value ) {
 			continue;
@@ -282,6 +365,78 @@ function cbi_strip_upload_metadata( $upload ) {
 	return $upload;
 }
 add_filter( 'wp_handle_upload', 'cbi_strip_upload_metadata', 20 );
+
+function cbi_build_review_link_for_order( $order ) {
+	if ( ! $order instanceof WC_Order ) {
+		return '';
+	}
+
+	$base = trim( (string) $order->get_meta( 'review_url_base', true ) );
+	if ( '' === $base ) {
+		$base = home_url();
+	}
+
+	$base = untrailingslashit( $base );
+	if ( '' === $base ) {
+		return '';
+	}
+
+	return add_query_arg(
+		array(
+			'orderId' => $order->get_id(),
+			'email'   => $order->get_billing_email(),
+		),
+		$base . '/feedback'
+	);
+}
+
+function cbi_send_review_invitation_for_completed_order( $order_id ) {
+	if ( ! function_exists( 'wc_get_order' ) ) {
+		return;
+	}
+
+	$order = wc_get_order( $order_id );
+	if ( ! $order instanceof WC_Order ) {
+		return;
+	}
+
+	if ( '1' === (string) $order->get_meta( 'cbi_review_invite_sent', true ) ) {
+		return;
+	}
+
+	$email = $order->get_billing_email();
+	if ( ! $email || ! is_email( $email ) ) {
+		return;
+	}
+
+	$review_link = cbi_build_review_link_for_order( $order );
+	if ( '' === $review_link ) {
+		return;
+	}
+
+	$name        = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+	$service_name = (string) $order->get_meta( 'service_name', true );
+	$subject     = 'Votre avis sur votre prestation Conciergerie by Isa';
+	$lines       = array(
+		$name ? 'Bonjour ' . $name . ',' : 'Bonjour,',
+		'',
+		'Merci pour votre confiance.',
+		$service_name ? 'Vous pouvez donner votre avis sur : ' . $service_name . '.' : 'Vous pouvez donner votre avis sur votre prestation.',
+		'',
+		'Lien de retour :',
+		$review_link,
+		'',
+		'Votre retour nous aide a ameliorer la qualite de service.',
+	);
+	$body        = implode( "\n", $lines );
+
+	$sent = wp_mail( $email, $subject, $body );
+	if ( $sent ) {
+		$order->update_meta_data( 'cbi_review_invite_sent', '1' );
+		$order->save();
+	}
+}
+add_action( 'woocommerce_order_status_completed', 'cbi_send_review_invitation_for_completed_order' );
 
 function cbi_is_contact_request_post_type( $post_type ) {
 	return in_array( $post_type, cbi_contact_request_post_types(), true );
