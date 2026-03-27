@@ -366,12 +366,38 @@ function cbi_strip_upload_metadata( $upload ) {
 }
 add_filter( 'wp_handle_upload', 'cbi_strip_upload_metadata', 20 );
 
+function cbi_get_default_review_base_url() {
+	$configured = '';
+
+	if ( defined( 'CBI_REVIEW_FRONTEND_URL' ) && is_string( CBI_REVIEW_FRONTEND_URL ) ) {
+		$configured = CBI_REVIEW_FRONTEND_URL;
+	}
+
+	if ( '' === $configured ) {
+		$option_value = get_option( 'cbi_review_frontend_url', '' );
+		if ( is_string( $option_value ) ) {
+			$configured = $option_value;
+		}
+	}
+
+	$configured = trim( (string) apply_filters( 'cbi_review_frontend_url', $configured ) );
+
+	if ( '' === $configured ) {
+		return '';
+	}
+
+	return untrailingslashit( $configured );
+}
+
 function cbi_build_review_link_for_order( $order ) {
 	if ( ! $order instanceof WC_Order ) {
 		return '';
 	}
 
 	$base = trim( (string) $order->get_meta( 'review_url_base', true ) );
+	if ( '' === $base ) {
+		$base = cbi_get_default_review_base_url();
+	}
 	if ( '' === $base ) {
 		$base = home_url();
 	}
@@ -636,6 +662,96 @@ function cbi_register_cli_commands() {
 					'name'        => 'dry-run',
 					'optional'    => true,
 					'description' => 'List files without modifying them.',
+				),
+			),
+		)
+	);
+
+	WP_CLI::add_command(
+		'cbi backfill-review-url',
+		function( $args, $assoc_args ) {
+			if ( ! function_exists( 'wc_get_orders' ) ) {
+				WP_CLI::error( 'WooCommerce is required for this command.' );
+				return;
+			}
+
+			$base_url = isset( $assoc_args['base'] ) ? trim( (string) $assoc_args['base'] ) : '';
+			if ( '' === $base_url ) {
+				$base_url = cbi_get_default_review_base_url();
+			}
+			if ( '' === $base_url ) {
+				WP_CLI::error( 'Missing base URL. Use --base=https://your-frontend.example or configure CBI_REVIEW_FRONTEND_URL.' );
+				return;
+			}
+
+			$limit   = isset( $assoc_args['limit'] ) ? (int) $assoc_args['limit'] : -1;
+			$dry_run = isset( $assoc_args['dry-run'] );
+			$orders  = wc_get_orders(
+				array(
+					'limit'  => $limit,
+					'return' => 'objects',
+					'orderby'=> 'date',
+					'order'  => 'DESC',
+				)
+			);
+
+			if ( empty( $orders ) ) {
+				WP_CLI::success( 'No orders found.' );
+				return;
+			}
+
+			$updated = 0;
+			$skipped = 0;
+
+			foreach ( $orders as $order ) {
+				if ( ! $order instanceof WC_Order ) {
+					continue;
+				}
+
+				$current = trim( (string) $order->get_meta( 'review_url_base', true ) );
+				if ( '' !== $current ) {
+					$skipped++;
+					continue;
+				}
+
+				if ( $dry_run ) {
+					WP_CLI::log( sprintf( '[dry-run] order #%d -> %s', $order->get_id(), $base_url ) );
+					continue;
+				}
+
+				$order->update_meta_data( 'review_url_base', untrailingslashit( $base_url ) );
+				$order->save();
+				$updated++;
+			}
+
+			WP_CLI::success(
+				sprintf(
+					'Backfill complete. Updated: %d. Skipped: %d.',
+					$updated,
+					$skipped
+				)
+			);
+		},
+		array(
+			'shortdesc' => 'Backfill missing review_url_base metadata on WooCommerce orders.',
+			'synopsis'  => array(
+				array(
+					'type'        => 'assoc',
+					'name'        => 'base',
+					'optional'    => true,
+					'description' => 'Frontend base URL, e.g. https://conciergeriebyisa.fr',
+				),
+				array(
+					'type'        => 'assoc',
+					'name'        => 'limit',
+					'optional'    => true,
+					'description' => 'Limit number of orders to inspect.',
+				),
+				array(
+					'type'        => 'flag',
+					'name'        => 'dry-run',
+					'optional'    => true,
+					'description' => 'List affected orders without updating them.',
 				),
 			),
 		)
