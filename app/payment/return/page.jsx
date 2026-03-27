@@ -19,7 +19,8 @@ const STATUS_BADGES = {
 };
 
 export default async function PaymentReturnPage({ searchParams }) {
-  const orderId = searchParams?.orderId || "";
+  const resolvedSearchParams = (await searchParams) || {};
+  const orderId = resolvedSearchParams.orderId || "";
 
   if (!orderId) {
     return (
