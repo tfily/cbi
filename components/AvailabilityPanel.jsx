@@ -204,7 +204,7 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
                     )}&scheduled_date=${encodeURIComponent(day.date)}#contact`}
                     className="inline-flex items-center rounded-full bg-amber-700 px-3 py-1 text-[11px] font-semibold text-white hover:bg-amber-800"
                   >
-                    Reserver ({totalRemaining})
+                    Réserver ({totalRemaining})
                   </a>
                 )}
               </div>

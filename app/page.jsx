@@ -301,18 +301,21 @@ export default async function HomePage({ searchParams }) {
 
 
       {/* Info box with full-width city silhouette background (no overlap) */}
-      <section className="relative overflow-hidden max-w-5xl mx-auto px-4 mt-20 py-14 min-h-[50vh]">
+      <section className="relative overflow-hidden w-full py-14 min-h-[50vh]">
 
         {/* Background silhouette fills the section, clipped inside it */}
         <div
-          className="pointer-events-none absolute inset-0 z-0 bg-no-repeat bg-center bg-cover opacity-25 grayscale"
+          className="pointer-events-none absolute inset-0 z-0 bg-no-repeat bg-center bg-cover opacity-25"
           style={{
-            backgroundImage: "url('/info-bg.png')",
+            backgroundImage: "url('/info-bg-paris.jpg')",
+            backgroundPosition: "center 68%",
           }}
         />
+        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-amber-100/55 via-amber-50/35 to-orange-100/25" />
 
         {/* Content */}
-        <div className="relative z-10 max-w-xl mx-auto space-y-4 text-neutral-900">
+        <div className="relative z-10 max-w-5xl mx-auto px-4">
+          <div className="max-w-xl space-y-4 text-neutral-900">
           <h2 className="text-lg font-semibold">Informations clés</h2>
 
           {infoBoxes.length === 0 ? (
@@ -337,6 +340,7 @@ export default async function HomePage({ searchParams }) {
               );
             })()
           )}
+          </div>
         </div>
 
       </section>
@@ -360,7 +364,7 @@ export default async function HomePage({ searchParams }) {
 
         {services.length === 0 ? (
           <p className="text-sm text-neutral-500">
-            Les services seront affichés ici dès qu ils auront été ajoutés dans WordPress.
+            Les services seront affichés ici dès qu'ils auront été ajoutés dans WordPress.
           </p>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">

@@ -129,11 +129,11 @@ export default async function AboutPage() {
               <p>
                 Nous accompagnons des particuliers exigeants dans la gestion de leur foyer, de
                 leurs animaux et de leurs déplacements à Paris et en petite couronne. Notre équipe
-                construit des solutions sur-mesure, de l intention au moindre detail.
+                construit des solutions sur-mesure, de l intention au moindre détail.
               </p>
               <p>
                 Nous prenons le temps de comprendre vos habitudes, vos priorités et votre rythme
-                pour orchestrer des prestations fiables, discretes et rassurantes.
+                pour orchestrer des prestations fiables, discrètes et rassurantes.
               </p>
               <p className="text-amber-800 font-semibold">
                 Ajoutez une page WordPress "À propos" pour personnaliser ce texte.
@@ -146,20 +146,20 @@ export default async function AboutPage() {
           <h3 className="text-lg font-semibold mb-4">Nos engagements</h3>
           <ul className="space-y-4 text-sm text-neutral-700">
             <li>
-              <span className="font-semibold text-neutral-900">Disponibilite :</span> une equipe
-              reactive et joignable, avec un suivi clair de chaque demande.
+              <span className="font-semibold text-neutral-900">Disponibilité :</span> une équipe
+              réactive et joignable, avec un suivi clair de chaque demande.
             </li>
             <li>
               <span className="font-semibold text-neutral-900">Confiance :</span> des partenaires
-              selectionnes, des processus soignes, une attention a la confidentialite.
+              sélectionnés, des processus soignés, une attention à la confidentialité.
             </li>
             <li>
               <span className="font-semibold text-neutral-900">Souplesse :</span> des prestations
-              a la carte, ponctuelles ou recurrentes selon votre agenda.
+              à la carte, ponctuelles ou récurrentes selon votre agenda.
             </li>
             <li>
-              <span className="font-semibold text-neutral-900">Qualite :</span> chaque mission est
-              verifiee pour garantir votre tranquillite.
+              <span className="font-semibold text-neutral-900">Qualité :</span> chaque mission est
+              vérifiée pour garantir votre tranquillité.
             </li>
           </ul>
         </div>
@@ -170,15 +170,15 @@ export default async function AboutPage() {
           {[
             {
               title: "Coordination locale",
-              body: "Une presence terrain sur Paris et proche couronne pour une intervention rapide.",
+              body: "Une présence terrain sur Paris et proche couronne pour une intervention rapide.",
             },
             {
               title: "Services sur-mesure",
-              body: "Chaque prestation est adaptee a vos usages : intendance, animaux, logistique.",
+              body: "Chaque prestation est adaptée à vos usages : intendance, animaux, logistique.",
             },
             {
               title: "Suivi transparent",
-              body: "Des points reguliers, des confirmations claires et une equipe proactive.",
+              body: "Des points réguliers, des confirmations claires et une équipe proactive.",
             },
           ].map((item) => (
             <div

@@ -91,7 +91,7 @@ export default async function ServicePage({ params }) {
         <h1 className="text-2xl font-bold mb-4">Service introuvable</h1>
         <p className="mb-4">Le service que vous recherchez n existe pas ou plus.</p>
         <Link href="/" className="text-amber-800 hover:underline text-sm">
-          Retour à l accueil
+          Retour à l'accueil
         </Link>
       </main>
     );

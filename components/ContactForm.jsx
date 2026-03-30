@@ -759,7 +759,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               </select>
               {selectedService?.invoiceOnly ? (
                 <p className="mt-2 text-xs text-amber-200">
-                  Ce service est traite sur devis. Utilisez le contact ci-dessous.
+                  Ce service est traité sur devis. Utilisez le contact ci-dessous.
                 </p>
               ) : null}
               {selectedServicePricing?.bookingFeeMinor ? (
@@ -801,7 +801,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               type="text"
               name="service_type"
               className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-              placeholder="Ex: courses, pressing, garde d animaux..."
+              placeholder="Ex : courses, pressing, garde d'animaux..."
             />
           )}
         </div>
