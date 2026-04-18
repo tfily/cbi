@@ -17,7 +17,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const post = await getPostBySlug(params.slug).catch(() => null);
+  const resolvedParams = await params;
+  const post = await getPostBySlug(resolvedParams.slug).catch(() => null);
   if (!post) return {};
   return {
     title: `${cleanHtml(post.title?.rendered || "Actualité")} - Conciergerie by Isa`,
@@ -26,7 +27,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function NewsDetailPage({ params }) {
-  const post = await getPostBySlug(params.slug).catch(() => null);
+  const resolvedParams = await params;
+  const post = await getPostBySlug(resolvedParams.slug).catch(() => null);
 
   if (!post) {
     return (
@@ -72,4 +74,3 @@ export default async function NewsDetailPage({ params }) {
     </main>
   );
 }
-

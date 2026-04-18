@@ -71,7 +71,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const service = await getServiceBySlug(params.slug).catch(() => null);
+  const resolvedParams = await params;
+  const service = await getServiceBySlug(resolvedParams.slug).catch(() => null);
   if (!service) {
     return {};
   }
@@ -83,7 +84,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ServicePage({ params }) {
-  const service = await getServiceBySlug(params.slug).catch(() => null);
+  const resolvedParams = await params;
+  const service = await getServiceBySlug(resolvedParams.slug).catch(() => null);
 
   if (!service) {
     return (
@@ -177,9 +179,9 @@ export default async function ServicePage({ params }) {
 
       {/* CTA */}
       <div className="space-y-6">
-        <AvailabilityPanel slug={params.slug} itemType="service" />
+        <AvailabilityPanel slug={resolvedParams.slug} itemType="service" />
         <a
-          href={`/?service=${encodeURIComponent(params.slug)}#contact`}
+          href={`/?service=${encodeURIComponent(resolvedParams.slug)}#contact`}
           className="inline-flex items-center px-5 py-2.5 rounded-full bg-amber-700 text-sm font-semibold text-white hover:bg-amber-800"
         >
           Demander ce service
