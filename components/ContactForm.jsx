@@ -5,21 +5,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 function cleanHtml(str) {
   const noTags = String(str || "").replace(/<[^>]+>/g, "");
-  if (typeof window !== "undefined") {
-    const textarea = document.createElement("textarea");
-    textarea.innerHTML = noTags;
-    return textarea.value;
-  }
   return noTags
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;|&rsquo;|&#8217;/g, "'")
-    .replace(/&ldquo;|&#8220;/g, '"')
-    .replace(/&rdquo;|&#8221;/g, '"')
-    .replace(/&eacute;/g, "e")
-    .replace(/&agrave;/g, "a")
-    .replace(/&ccedil;/g, "c");
+    .replace(/&#39;|&apos;|&rsquo;|&#8217;/g, "’")
+    .replace(/&ldquo;|&#8220;/g, "“")
+    .replace(/&rdquo;|&#8221;/g, "”")
+    .replace(/&eacute;/g, "é")
+    .replace(/&egrave;/g, "è")
+    .replace(/&ecirc;/g, "ê")
+    .replace(/&agrave;/g, "à")
+    .replace(/&ccedil;/g, "ç");
 }
 
 function parsePriceToMinor(value) {
@@ -298,6 +295,94 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     () => subscriptionOptions.find((o) => o.slug === subscriptionChoice),
     [subscriptionOptions, subscriptionChoice]
   );
+  const formMode = useMemo(() => {
+    if (isCustomRequest) return "custom";
+    if (selectedSubscriptionOption) return "subscription";
+    if (selectedService) return "service";
+    return "request";
+  }, [isCustomRequest, selectedService, selectedSubscriptionOption]);
+  const formTheme = useMemo(() => {
+    const themes = {
+      request: {
+        panelClassName:
+          "border-neutral-700/80 bg-neutral-950/70 text-neutral-100",
+        badgeClassName:
+          "border-neutral-600 bg-neutral-900 text-neutral-200",
+        eyebrow: "Demande simple",
+        title: "Parlez-nous de votre besoin",
+        description:
+          "Utilisez ce formulaire pour une prise de contact simple ou une demande d'information.",
+        accentTextClassName: "text-neutral-200",
+        accentSoftTextClassName: "text-neutral-400",
+        focusRingClassName: "focus:ring-neutral-400",
+        inputBorderClassName: "border-neutral-600",
+        inputBgClassName: "bg-neutral-900",
+        submitButtonClassName:
+          "bg-neutral-100 text-neutral-950 hover:bg-white",
+        payButtonClassName:
+          "border-neutral-500 text-neutral-200 hover:bg-neutral-800/40",
+      },
+      service: {
+        panelClassName:
+          "border-amber-500/40 bg-amber-950/20 text-amber-50",
+        badgeClassName:
+          "border-amber-400/40 bg-amber-500/15 text-amber-100",
+        eyebrow: "Réservation de service",
+        title: "Préparez votre réservation",
+        description:
+          "Le formulaire est configuré pour réserver un service précis avec date et créneau si nécessaire.",
+        accentTextClassName: "text-amber-100",
+        accentSoftTextClassName: "text-amber-200/80",
+        focusRingClassName: "focus:ring-amber-500",
+        inputBorderClassName: "border-amber-500/35",
+        inputBgClassName: "bg-neutral-950",
+        submitButtonClassName:
+          "bg-amber-600 text-neutral-950 hover:bg-amber-500",
+        payButtonClassName:
+          "border-amber-500 text-amber-200 hover:bg-amber-500/20",
+      },
+      subscription: {
+        panelClassName:
+          "border-emerald-500/40 bg-emerald-950/20 text-emerald-50",
+        badgeClassName:
+          "border-emerald-400/40 bg-emerald-500/15 text-emerald-100",
+        eyebrow: "Abonnement",
+        title: "Activez votre formule",
+        description:
+          "Le formulaire met en avant la souscription à une formule avec un créneau de démarrage.",
+        accentTextClassName: "text-emerald-100",
+        accentSoftTextClassName: "text-emerald-200/80",
+        focusRingClassName: "focus:ring-emerald-500",
+        inputBorderClassName: "border-emerald-500/35",
+        inputBgClassName: "bg-neutral-950",
+        submitButtonClassName:
+          "bg-emerald-500 text-neutral-950 hover:bg-emerald-400",
+        payButtonClassName:
+          "border-emerald-500 text-emerald-200 hover:bg-emerald-500/20",
+      },
+      custom: {
+        panelClassName:
+          "border-sky-500/40 bg-sky-950/20 text-sky-50",
+        badgeClassName:
+          "border-sky-400/40 bg-sky-500/15 text-sky-100",
+        eyebrow: "Demande sur-mesure",
+        title: "Décrivez votre mission",
+        description:
+          "Le formulaire s'adapte pour une demande personnalisée hors catalogue.",
+        accentTextClassName: "text-sky-100",
+        accentSoftTextClassName: "text-sky-200/80",
+        focusRingClassName: "focus:ring-sky-500",
+        inputBorderClassName: "border-sky-500/35",
+        inputBgClassName: "bg-neutral-950",
+        submitButtonClassName:
+          "bg-sky-500 text-neutral-950 hover:bg-sky-400",
+        payButtonClassName:
+          "border-sky-500 text-sky-200 hover:bg-sky-500/20",
+      },
+    };
+    return themes[formMode];
+  }, [formMode]);
+  const fieldClassName = `w-full rounded-lg border ${formTheme.inputBorderClassName} ${formTheme.inputBgClassName} px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formTheme.focusRingClassName}`;
   const selectedServicePricing = useMemo(() => {
     if (!selectedService) return null;
     const bookingFeeMinor = Number(selectedService.bookingFeeMinor || 0);
@@ -344,6 +429,29 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     }
     return "";
   }, [selectedService]);
+  const modeSummary = useMemo(() => {
+    if (formMode === "subscription" && selectedSubscriptionOption) {
+      return `Formule sélectionnée : ${selectedSubscriptionOption.label}${
+        selectedSubscriptionOption.priceLabel
+          ? ` • ${selectedSubscriptionOption.priceLabel}`
+          : ""
+      }`;
+    }
+    if (formMode === "service" && selectedService) {
+      return `Service sélectionné : ${selectedService.label}${
+        selectedServiceHeadlinePrice ? ` • ${selectedServiceHeadlinePrice}` : ""
+      }`;
+    }
+    if (formMode === "custom") {
+      return "Vous êtes en mode sur-mesure : détaillez le besoin, le contexte et les contraintes.";
+    }
+    return "Aucun service imposé : nous utiliserons votre message pour orienter la demande.";
+  }, [
+    formMode,
+    selectedService,
+    selectedServiceHeadlinePrice,
+    selectedSubscriptionOption,
+  ]);
 
   useEffect(() => {
     const availableModes = new Set([
@@ -648,6 +756,28 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       className="space-y-4"
       onSubmit={handleSubmit}
     >
+      <div className={`rounded-2xl border px-4 py-4 shadow-sm ${formTheme.panelClassName}`}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <span
+              className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${formTheme.badgeClassName}`}
+            >
+              {formTheme.eyebrow}
+            </span>
+            <div>
+              <p className="text-lg font-semibold">{formTheme.title}</p>
+              <p className={`text-sm ${formTheme.accentSoftTextClassName}`}>
+                {formTheme.description}
+              </p>
+            </div>
+          </div>
+          <p
+            className={`max-w-md text-sm md:text-right ${formTheme.accentTextClassName}`}
+          >
+            {modeSummary}
+          </p>
+        </div>
+      </div>
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium mb-1">Nom complet</label>
@@ -655,7 +785,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             type="text"
             name="name"
             required
-            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className={fieldClassName}
           />
         </div>
         <div>
@@ -664,7 +794,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             type="email"
             name="email"
             required
-            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className={fieldClassName}
           />
         </div>
       </div>
@@ -680,7 +810,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             required
             value={scheduledDate}
             onChange={(event) => setScheduledDate(event.target.value)}
-            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className={fieldClassName}
           />
         </div>
         <div>
@@ -692,7 +822,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               name="time_slot"
               value={timeSlot}
               onChange={(event) => setTimeSlot(event.target.value)}
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
             >
               <option value="">Choisir un créneau</option>
               {availableSlots.map((slot) => (
@@ -708,7 +838,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               placeholder={slotsLoading ? "Chargement des créneaux..." : "Ex : 09:00-10:00"}
               value={timeSlot}
               onChange={(event) => setTimeSlot(event.target.value)}
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
             />
           )}
         </div>
@@ -720,17 +850,17 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           <input
             type="tel"
             name="phone"
-            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className={fieldClassName}
           />
         </div>
         <div>
           <label className="block text-xs font-medium mb-1">Type de service</label>
           {isCustomRequest ? (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-amber-500/40 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-300">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-sky-500/40 bg-sky-950/20 px-3 py-2 text-sm text-sky-100">
               <span>Mode sur-mesure actif. Décrivez votre besoin dans les champs ci-dessous.</span>
               <a
                 href="/#contact"
-                className="shrink-0 text-xs font-semibold text-amber-200 hover:underline"
+                className="shrink-0 text-xs font-semibold text-sky-200 hover:underline"
               >
                 Revenir au catalogue
               </a>
@@ -741,7 +871,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
                 name="service_type"
                 value={serviceChoice}
                 onChange={(event) => setServiceChoice(event.target.value)}
-                className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className={fieldClassName}
               >
                 <option value="">Choisir un service</option>
                 {options.map((o) => (
@@ -763,13 +893,15 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
                 </p>
               ) : null}
               {selectedServicePricing?.bookingFeeMinor ? (
-                <p className="mt-2 text-xs text-neutral-300">
+                <p className={`mt-2 text-xs ${formTheme.accentSoftTextClassName}`}>
                   Frais de réservation transport inclus :{" "}
                   {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} €
                 </p>
               ) : null}
               {selectedServiceHeadlinePrice ? (
-                <p className="mt-2 text-xs text-neutral-300">{selectedServiceHeadlinePrice}</p>
+                <p className={`mt-2 text-xs ${formTheme.accentSoftTextClassName}`}>
+                  {selectedServiceHeadlinePrice}
+                </p>
               ) : null}
               {selectedService?.packOptions?.length ? (
                 <div className="mt-3">
@@ -778,7 +910,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
                     name="service_pricing"
                     value={servicePricingMode}
                     onChange={(event) => setServicePricingMode(event.target.value)}
-                    className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className={fieldClassName}
                   >
                     <option value="unit">
                       Prix unitaire
@@ -800,7 +932,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             <input
               type="text"
               name="service_type"
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
               placeholder="Ex : courses, pressing, garde d'animaux..."
             />
           )}
@@ -818,7 +950,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               name="custom_service_title"
               required={isCustomRequest}
               placeholder="Ex : accompagnement événement, aide ponctuelle, mission exceptionnelle"
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
             />
           </div>
           <div>
@@ -827,14 +959,14 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               type="text"
               name="location"
               placeholder="Ville, quartier ou adresse approximative"
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
             />
           </div>
           <div>
             <label className="block text-xs font-medium mb-1">Fréquence</label>
             <select
               name="frequency"
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
               defaultValue=""
             >
               <option value="">Ponctuel ou récurrent ?</option>
@@ -850,7 +982,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               type="text"
               name="budget"
               placeholder="Ex : 80-120 € ou sur devis"
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
             />
           </div>
           <div>
@@ -859,7 +991,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             </label>
             <select
               name="preferred_contact"
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
               defaultValue=""
             >
               <option value="">Choisir</option>
@@ -872,7 +1004,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             <label className="block text-xs font-medium mb-1">Urgence</label>
             <select
               name="urgency"
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
               defaultValue=""
             >
               <option value="">Choisir</option>
@@ -890,7 +1022,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               rows={4}
               name="custom_service_details"
               placeholder="Contexte, contraintes, attentes, volume estimé, horaires, personnes concernées..."
-              className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className={fieldClassName}
             />
           </div>
         </div>
@@ -905,7 +1037,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             name="subscription_plan"
             value={subscriptionChoice}
             onChange={(event) => setSubscriptionChoice(event.target.value)}
-            className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className={fieldClassName}
           >
               <option value="">Je souhaite discuter d'une formule</option>
             {subscriptionOptions.map((sub) => (
@@ -915,20 +1047,22 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
               </option>
             ))}
           </select>
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={handlePaySubscription}
-              disabled={
-                !paymentsEnabled ||
-                isPaying ||
-                !selectedSubscriptionOption?.priceMinor
-              }
-              className="inline-flex items-center px-4 py-2 rounded-full border border-neutral-500 text-xs font-semibold text-neutral-200 hover:bg-neutral-800/40 transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isPaying ? "Redirection..." : "Payer abonnement"}
-            </button>
-          </div>
+          {selectedSubscriptionOption ? (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handlePaySubscription}
+                disabled={
+                  !paymentsEnabled ||
+                  isPaying ||
+                  !selectedSubscriptionOption.priceMinor
+                }
+                className={`inline-flex items-center px-4 py-2 rounded-full border text-xs font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
+              >
+                {isPaying ? "Redirection..." : "Payer l'abonnement"}
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
 
@@ -937,8 +1071,16 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         <textarea
           rows={4}
           name="message"
-          className="w-full rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-          placeholder="Précisez la date souhaitée, l'adresse, les horaires, etc."
+          className={fieldClassName}
+          placeholder={
+            formMode === "subscription"
+              ? "Précisez la date de démarrage souhaitée, vos attentes et votre rythme."
+              : formMode === "service"
+                ? "Précisez la date souhaitée, l'adresse, les horaires et toute contrainte utile."
+                : formMode === "custom"
+                  ? "Décrivez la mission, le contexte, les personnes concernées et vos attentes."
+                  : "Précisez votre besoin, vos disponibilités et toute information utile."
+          }
         />
       </div>
 
@@ -951,23 +1093,33 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center px-5 py-2.5 rounded-full bg-amber-600 text-sm font-semibold text-neutral-900 hover:bg-amber-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className={`inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.submitButtonClassName}`}
           >
-            {isSubmitting ? "Envoi..." : "Envoyer la demande"}
+            {isSubmitting
+              ? "Envoi..."
+              : formMode === "subscription"
+                ? "Demander des informations sur la formule"
+                : formMode === "service"
+                  ? "Envoyer la réservation"
+                  : formMode === "custom"
+                    ? "Envoyer la demande sur-mesure"
+                    : "Envoyer la demande"}
           </button>
-          <button
-            type="button"
-            onClick={handlePayNow}
-            disabled={
-              !paymentsEnabled ||
-              isPaying ||
-              !selectedServicePricing?.amountMinor ||
-              selectedService?.invoiceOnly
-            }
-            className="inline-flex items-center px-5 py-2.5 rounded-full border border-amber-500 text-sm font-semibold text-amber-200 hover:bg-amber-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isPaying ? "Redirection..." : "Payer maintenant"}
-          </button>
+          {formMode === "service" ? (
+            <button
+              type="button"
+              onClick={handlePayNow}
+              disabled={
+                !paymentsEnabled ||
+                isPaying ||
+                !selectedServicePricing?.amountMinor ||
+                selectedService?.invoiceOnly
+              }
+              className={`inline-flex items-center px-5 py-2.5 rounded-full border text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
+            >
+              {isPaying ? "Redirection..." : "Payer maintenant"}
+            </button>
+          ) : null}
           {selectedService?.invoiceOnly ? (
             <a
               href={selectedService.contactUrl || "#contact"}
