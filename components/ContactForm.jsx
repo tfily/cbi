@@ -310,8 +310,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           "border-neutral-600 bg-neutral-900 text-neutral-200",
         eyebrow: "Demande simple",
         title: "Parlez-nous de votre besoin",
-        description:
-          "Utilisez ce formulaire pour une prise de contact simple ou une demande d'information.",
+        description: "",
         accentTextClassName: "text-neutral-200",
         accentSoftTextClassName: "text-neutral-400",
         focusRingClassName: "focus:ring-neutral-400",
@@ -329,8 +328,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           "border-amber-400/40 bg-amber-500/15 text-amber-100",
         eyebrow: "Réservation de service",
         title: "Préparez votre réservation",
-        description:
-          "Le formulaire est configuré pour réserver un service précis avec date et créneau si nécessaire.",
+        description: "",
         accentTextClassName: "text-amber-100",
         accentSoftTextClassName: "text-amber-200/80",
         focusRingClassName: "focus:ring-amber-500",
@@ -348,8 +346,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           "border-emerald-400/40 bg-emerald-500/15 text-emerald-100",
         eyebrow: "Abonnement",
         title: "Activez votre formule",
-        description:
-          "Le formulaire met en avant la souscription à une formule avec un créneau de démarrage.",
+        description: "",
         accentTextClassName: "text-emerald-100",
         accentSoftTextClassName: "text-emerald-200/80",
         focusRingClassName: "focus:ring-emerald-500",
@@ -367,8 +364,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
           "border-sky-400/40 bg-sky-500/15 text-sky-100",
         eyebrow: "Demande sur-mesure",
         title: "Décrivez votre mission",
-        description:
-          "Le formulaire s'adapte pour une demande personnalisée hors catalogue.",
+        description: "",
         accentTextClassName: "text-sky-100",
         accentSoftTextClassName: "text-sky-200/80",
         focusRingClassName: "focus:ring-sky-500",
@@ -766,9 +762,11 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
             </span>
             <div>
               <p className="text-lg font-semibold">{formTheme.title}</p>
-              <p className={`text-sm ${formTheme.accentSoftTextClassName}`}>
-                {formTheme.description}
-              </p>
+              {formTheme.description ? (
+                <p className={`text-sm ${formTheme.accentSoftTextClassName}`}>
+                  {formTheme.description}
+                </p>
+              ) : null}
             </div>
           </div>
           <p
