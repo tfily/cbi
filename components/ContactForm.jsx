@@ -190,6 +190,420 @@ function extractPackEntries(meta) {
     .sort((a, b) => a.size - b.size);
 }
 
+function FormModeBanner({ formTheme, modeSummary }) {
+  return (
+    <div className={`rounded-2xl border px-4 py-4 shadow-sm ${formTheme.panelClassName}`}>
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-2">
+          <span
+            className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${formTheme.badgeClassName}`}
+          >
+            {formTheme.eyebrow}
+          </span>
+          <div>
+            <p className="text-lg font-semibold">{formTheme.title}</p>
+            {formTheme.description ? (
+              <p className={`text-sm ${formTheme.accentSoftTextClassName}`}>
+                {formTheme.description}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <p className={`max-w-md text-sm md:text-right ${formTheme.accentTextClassName}`}>
+          {modeSummary}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function IdentityFields({ fieldClassName }) {
+  return (
+    <div className="grid md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-xs font-medium mb-1">Nom complet</label>
+        <input type="text" name="name" required className={fieldClassName} />
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Email</label>
+        <input type="email" name="email" required className={fieldClassName} />
+      </div>
+    </div>
+  );
+}
+
+function SchedulingFields({
+  fieldClassName,
+  scheduledDate,
+  setScheduledDate,
+  timeSlot,
+  setTimeSlot,
+  availableSlots,
+  slotsLoading,
+}) {
+  return (
+    <div className="grid md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-xs font-medium mb-1">Date d'intervention</label>
+        <input
+          type="date"
+          name="scheduled_date"
+          required
+          value={scheduledDate}
+          onChange={(event) => setScheduledDate(event.target.value)}
+          className={fieldClassName}
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Créneau (optionnel)</label>
+        {availableSlots.length > 0 ? (
+          <select
+            name="time_slot"
+            value={timeSlot}
+            onChange={(event) => setTimeSlot(event.target.value)}
+            className={fieldClassName}
+          >
+            <option value="">Choisir un créneau</option>
+            {availableSlots.map((slot) => (
+              <option key={slot.slot} value={slot.slot}>
+                {slot.slot}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type="text"
+            name="time_slot"
+            placeholder={slotsLoading ? "Chargement des créneaux..." : "Ex : 09:00-10:00"}
+            value={timeSlot}
+            onChange={(event) => setTimeSlot(event.target.value)}
+            className={fieldClassName}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ServiceFields({
+  fieldClassName,
+  isCustomRequest,
+  options,
+  serviceChoice,
+  setServiceChoice,
+  selectedService,
+  selectedServicePricing,
+  selectedServiceHeadlinePrice,
+  servicePricingMode,
+  setServicePricingMode,
+  formTheme,
+}) {
+  return (
+    <div className="grid md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-xs font-medium mb-1">Téléphone</label>
+        <input type="tel" name="phone" className={fieldClassName} />
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Type de service</label>
+        {isCustomRequest ? (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-sky-500/40 bg-sky-950/20 px-3 py-2 text-sm text-sky-100">
+            <span>Mode sur-mesure actif. Décrivez votre besoin dans les champs ci-dessous.</span>
+            <a
+              href="/#contact"
+              className="shrink-0 text-xs font-semibold text-sky-200 hover:underline"
+            >
+              Revenir au catalogue
+            </a>
+          </div>
+        ) : options.length ? (
+          <>
+            <select
+              name="service_type"
+              value={serviceChoice}
+              onChange={(event) => setServiceChoice(event.target.value)}
+              className={fieldClassName}
+            >
+              <option value="">Choisir un service</option>
+              {options.map((option) => (
+                <option key={option.slug} value={option.slug}>
+                  {option.label}
+                  {option.priceKind === "fee" && option.priceLabel
+                    ? ` - Frais de service ${formatEuroLabel(option.priceLabel)}`
+                    : option.priceLabel
+                      ? ` - Prix unitaire ${formatEuroLabel(option.priceLabel)}`
+                      : option.bookingFeeMinor
+                        ? ` - Frais de service ${formatEuroLabel(
+                            (option.bookingFeeMinor / 100).toFixed(2)
+                          )}`
+                        : ""}
+                </option>
+              ))}
+            </select>
+            {selectedService?.invoiceOnly ? (
+              <p className="mt-2 text-xs text-amber-200">
+                Ce service est traité sur devis. Utilisez le contact ci-dessous.
+              </p>
+            ) : null}
+            {selectedServicePricing?.bookingFeeMinor ? (
+              <p className={`mt-2 text-xs ${formTheme.accentSoftTextClassName}`}>
+                Frais de réservation transport inclus :{" "}
+                {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} €
+              </p>
+            ) : null}
+            {selectedServiceHeadlinePrice ? (
+              <p className={`mt-2 text-xs ${formTheme.accentSoftTextClassName}`}>
+                {selectedServiceHeadlinePrice}
+              </p>
+            ) : null}
+            {selectedService?.packOptions?.length ? (
+              <div className="mt-3">
+                <label className="block text-xs font-medium mb-1">Tarification</label>
+                <select
+                  name="service_pricing"
+                  value={servicePricingMode}
+                  onChange={(event) => setServicePricingMode(event.target.value)}
+                  className={fieldClassName}
+                >
+                  <option value="unit">
+                    Prix unitaire
+                    {selectedService.priceLabel
+                      ? ` - ${formatEuroLabel(selectedService.priceLabel)}`
+                      : ""}
+                  </option>
+                  {selectedService.packOptions.map((pack) => (
+                    <option key={pack.mode} value={pack.mode}>
+                      {pack.label}
+                      {pack.priceLabel ? ` - ${pack.priceLabel}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <input
+            type="text"
+            name="service_type"
+            className={fieldClassName}
+            placeholder="Ex : courses, pressing, garde d'animaux..."
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CustomRequestFields({ fieldClassName, isCustomRequest }) {
+  if (!isCustomRequest) return null;
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <div>
+        <label className="block text-xs font-medium mb-1">Service recherché</label>
+        <input
+          type="text"
+          name="custom_service_title"
+          required={isCustomRequest}
+          placeholder="Ex : accompagnement événement, aide ponctuelle, mission exceptionnelle"
+          className={fieldClassName}
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Lieu / secteur</label>
+        <input
+          type="text"
+          name="location"
+          placeholder="Ville, quartier ou adresse approximative"
+          className={fieldClassName}
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Fréquence</label>
+        <select name="frequency" className={fieldClassName} defaultValue="">
+          <option value="">Ponctuel ou récurrent ?</option>
+          <option value="one_off">Besoin ponctuel</option>
+          <option value="weekly">Chaque semaine</option>
+          <option value="monthly">Chaque mois</option>
+          <option value="custom">Rythme à définir</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Budget estimatif</label>
+        <input
+          type="text"
+          name="budget"
+          placeholder="Ex : 80-120 € ou sur devis"
+          className={fieldClassName}
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Préférence de contact</label>
+        <select name="preferred_contact" className={fieldClassName} defaultValue="">
+          <option value="">Choisir</option>
+          <option value="phone">Téléphone</option>
+          <option value="email">Email</option>
+          <option value="whatsapp">WhatsApp</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Urgence</label>
+        <select name="urgency" className={fieldClassName} defaultValue="">
+          <option value="">Choisir</option>
+          <option value="asap">Dès que possible</option>
+          <option value="this_week">Cette semaine</option>
+          <option value="this_month">Ce mois-ci</option>
+          <option value="flexible">Flexible</option>
+        </select>
+      </div>
+      <div className="md:col-span-2">
+        <label className="block text-xs font-medium mb-1">
+          Détails du service sur-mesure
+        </label>
+        <textarea
+          rows={4}
+          name="custom_service_details"
+          placeholder="Contexte, contraintes, attentes, volume estimé, horaires, personnes concernées..."
+          className={fieldClassName}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SubscriptionFields({
+  fieldClassName,
+  subscriptionOptions,
+  subscriptionChoice,
+  setSubscriptionChoice,
+  selectedSubscriptionOption,
+  handlePaySubscription,
+  paymentsEnabled,
+  isPaying,
+  formTheme,
+}) {
+  if (!subscriptionOptions.length) return null;
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-xs font-medium mb-1">
+        Formule d'abonnement (optionnel)
+      </label>
+      <select
+        name="subscription_plan"
+        value={subscriptionChoice}
+        onChange={(event) => setSubscriptionChoice(event.target.value)}
+        className={fieldClassName}
+      >
+        <option value="">Je souhaite discuter d'une formule</option>
+        {subscriptionOptions.map((sub) => (
+          <option key={sub.slug} value={sub.slug}>
+            {sub.label}
+            {sub.priceLabel ? ` – ${sub.priceLabel}` : ""}
+          </option>
+        ))}
+      </select>
+      {selectedSubscriptionOption ? (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handlePaySubscription}
+            disabled={
+              !paymentsEnabled || isPaying || !selectedSubscriptionOption.priceMinor
+            }
+            className={`inline-flex items-center px-4 py-2 rounded-full border text-xs font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
+          >
+            {isPaying ? "Redirection..." : "Payer l'abonnement"}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function MessageField({ fieldClassName, formMode }) {
+  const placeholder =
+    formMode === "subscription"
+      ? "Précisez la date de démarrage souhaitée, vos attentes et votre rythme."
+      : formMode === "service"
+        ? "Précisez la date souhaitée, l'adresse, les horaires et toute contrainte utile."
+        : formMode === "custom"
+          ? "Décrivez la mission, le contexte, les personnes concernées et vos attentes."
+          : "Précisez votre besoin, vos disponibilités et toute information utile.";
+
+  return (
+    <div>
+      <label className="block text-xs font-medium mb-1">Votre demande</label>
+      <textarea
+        rows={4}
+        name="message"
+        className={fieldClassName}
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
+function FormActions({
+  formMode,
+  formTheme,
+  isSubmitting,
+  isPaying,
+  handlePayNow,
+  paymentsEnabled,
+  selectedServicePricing,
+  selectedService,
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 pt-2">
+      <p className="text-[11px] text-neutral-400">
+        Les informations saisies sont utilisées uniquement pour traiter votre demande,
+        conformément à la réglementation en vigueur sur la protection des données.
+      </p>
+      <div className="flex flex-wrap gap-2 justify-end">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.submitButtonClassName}`}
+        >
+          {isSubmitting
+            ? "Envoi..."
+            : formMode === "subscription"
+              ? "Demander des informations sur la formule"
+              : formMode === "service"
+                ? "Envoyer la réservation"
+                : formMode === "custom"
+                  ? "Envoyer la demande sur-mesure"
+                  : "Envoyer la demande"}
+        </button>
+        {formMode === "service" ? (
+          <button
+            type="button"
+            onClick={handlePayNow}
+            disabled={
+              !paymentsEnabled ||
+              isPaying ||
+              !selectedServicePricing?.amountMinor ||
+              selectedService?.invoiceOnly
+            }
+            className={`inline-flex items-center px-5 py-2.5 rounded-full border text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
+          >
+            {isPaying ? "Redirection..." : "Payer maintenant"}
+          </button>
+        ) : null}
+        {selectedService?.invoiceOnly ? (
+          <a
+            href={selectedService.contactUrl || "#contact"}
+            className="inline-flex items-center px-5 py-2.5 rounded-full border border-neutral-500 text-sm font-semibold text-neutral-200 hover:bg-neutral-800/40 transition"
+          >
+            Contacter pour devis
+          </a>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default function ContactForm({ services = [], subscriptions = [] }) {
   const searchParams = useSearchParams();
   const paymentsEnabled = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED !== "false";
@@ -747,387 +1161,57 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   }
 
   return (
-    <form
-      ref={formRef}
-      className="space-y-4"
-      onSubmit={handleSubmit}
-    >
-      <div className={`rounded-2xl border px-4 py-4 shadow-sm ${formTheme.panelClassName}`}>
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2">
-            <span
-              className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${formTheme.badgeClassName}`}
-            >
-              {formTheme.eyebrow}
-            </span>
-            <div>
-              <p className="text-lg font-semibold">{formTheme.title}</p>
-              {formTheme.description ? (
-                <p className={`text-sm ${formTheme.accentSoftTextClassName}`}>
-                  {formTheme.description}
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <p
-            className={`max-w-md text-sm md:text-right ${formTheme.accentTextClassName}`}
-          >
-            {modeSummary}
-          </p>
-        </div>
-      </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium mb-1">Nom complet</label>
-          <input
-            type="text"
-            name="name"
-            required
-            className={fieldClassName}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium mb-1">Email</label>
-          <input
-            type="email"
-            name="email"
-            required
-            className={fieldClassName}
-          />
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium mb-1">
-            Date d'intervention
-          </label>
-          <input
-            type="date"
-            name="scheduled_date"
-            required
-            value={scheduledDate}
-            onChange={(event) => setScheduledDate(event.target.value)}
-            className={fieldClassName}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium mb-1">
-            Créneau (optionnel)
-          </label>
-          {availableSlots.length > 0 ? (
-            <select
-              name="time_slot"
-              value={timeSlot}
-              onChange={(event) => setTimeSlot(event.target.value)}
-              className={fieldClassName}
-            >
-              <option value="">Choisir un créneau</option>
-              {availableSlots.map((slot) => (
-                <option key={slot.slot} value={slot.slot}>
-                  {slot.slot}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input
-              type="text"
-              name="time_slot"
-              placeholder={slotsLoading ? "Chargement des créneaux..." : "Ex : 09:00-10:00"}
-              value={timeSlot}
-              onChange={(event) => setTimeSlot(event.target.value)}
-              className={fieldClassName}
-            />
-          )}
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium mb-1">Téléphone</label>
-          <input
-            type="tel"
-            name="phone"
-            className={fieldClassName}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium mb-1">Type de service</label>
-          {isCustomRequest ? (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-sky-500/40 bg-sky-950/20 px-3 py-2 text-sm text-sky-100">
-              <span>Mode sur-mesure actif. Décrivez votre besoin dans les champs ci-dessous.</span>
-              <a
-                href="/#contact"
-                className="shrink-0 text-xs font-semibold text-sky-200 hover:underline"
-              >
-                Revenir au catalogue
-              </a>
-            </div>
-          ) : options.length ? (
-            <>
-              <select
-                name="service_type"
-                value={serviceChoice}
-                onChange={(event) => setServiceChoice(event.target.value)}
-                className={fieldClassName}
-              >
-                <option value="">Choisir un service</option>
-                {options.map((o) => (
-                  <option key={o.slug} value={o.slug}>
-                    {o.label}
-                    {o.priceKind === "fee" && o.priceLabel
-                      ? ` - Frais de service ${formatEuroLabel(o.priceLabel)}`
-                      : o.priceLabel
-                        ? ` - Prix unitaire ${formatEuroLabel(o.priceLabel)}`
-                        : o.bookingFeeMinor
-                          ? ` - Frais de service ${formatEuroLabel((o.bookingFeeMinor / 100).toFixed(2))}`
-                          : ""}
-                  </option>
-                ))}
-              </select>
-              {selectedService?.invoiceOnly ? (
-                <p className="mt-2 text-xs text-amber-200">
-                  Ce service est traité sur devis. Utilisez le contact ci-dessous.
-                </p>
-              ) : null}
-              {selectedServicePricing?.bookingFeeMinor ? (
-                <p className={`mt-2 text-xs ${formTheme.accentSoftTextClassName}`}>
-                  Frais de réservation transport inclus :{" "}
-                  {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} €
-                </p>
-              ) : null}
-              {selectedServiceHeadlinePrice ? (
-                <p className={`mt-2 text-xs ${formTheme.accentSoftTextClassName}`}>
-                  {selectedServiceHeadlinePrice}
-                </p>
-              ) : null}
-              {selectedService?.packOptions?.length ? (
-                <div className="mt-3">
-                  <label className="block text-xs font-medium mb-1">Tarification</label>
-                  <select
-                    name="service_pricing"
-                    value={servicePricingMode}
-                    onChange={(event) => setServicePricingMode(event.target.value)}
-                    className={fieldClassName}
-                  >
-                    <option value="unit">
-                      Prix unitaire
-                      {selectedService.priceLabel
-                        ? ` - ${formatEuroLabel(selectedService.priceLabel)}`
-                        : ""}
-                    </option>
-                    {selectedService.packOptions.map((pack) => (
-                      <option key={pack.mode} value={pack.mode}>
-                        {pack.label}
-                        {pack.priceLabel ? ` - ${pack.priceLabel}` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <input
-              type="text"
-              name="service_type"
-              className={fieldClassName}
-              placeholder="Ex : courses, pressing, garde d'animaux..."
-            />
-          )}
-        </div>
-      </div>
-
-      {isCustomRequest ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-xs font-medium mb-1">
-              Service recherché
-            </label>
-            <input
-              type="text"
-              name="custom_service_title"
-              required={isCustomRequest}
-              placeholder="Ex : accompagnement événement, aide ponctuelle, mission exceptionnelle"
-              className={fieldClassName}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1">Lieu / secteur</label>
-            <input
-              type="text"
-              name="location"
-              placeholder="Ville, quartier ou adresse approximative"
-              className={fieldClassName}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1">Fréquence</label>
-            <select
-              name="frequency"
-              className={fieldClassName}
-              defaultValue=""
-            >
-              <option value="">Ponctuel ou récurrent ?</option>
-              <option value="one_off">Besoin ponctuel</option>
-              <option value="weekly">Chaque semaine</option>
-              <option value="monthly">Chaque mois</option>
-              <option value="custom">Rythme à définir</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1">Budget estimatif</label>
-            <input
-              type="text"
-              name="budget"
-              placeholder="Ex : 80-120 € ou sur devis"
-              className={fieldClassName}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1">
-              Préférence de contact
-            </label>
-            <select
-              name="preferred_contact"
-              className={fieldClassName}
-              defaultValue=""
-            >
-              <option value="">Choisir</option>
-              <option value="phone">Téléphone</option>
-              <option value="email">Email</option>
-              <option value="whatsapp">WhatsApp</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1">Urgence</label>
-            <select
-              name="urgency"
-              className={fieldClassName}
-              defaultValue=""
-            >
-              <option value="">Choisir</option>
-              <option value="asap">Dès que possible</option>
-              <option value="this_week">Cette semaine</option>
-              <option value="this_month">Ce mois-ci</option>
-              <option value="flexible">Flexible</option>
-            </select>
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-xs font-medium mb-1">
-              Détails du service sur-mesure
-            </label>
-            <textarea
-              rows={4}
-              name="custom_service_details"
-              placeholder="Contexte, contraintes, attentes, volume estimé, horaires, personnes concernées..."
-              className={fieldClassName}
-            />
-          </div>
-        </div>
-      ) : null}
-
-      {subscriptionOptions.length > 0 && (
-        <div className="space-y-3">
-          <label className="block text-xs font-medium mb-1">
-            Formule d'abonnement (optionnel)
-          </label>
-          <select
-            name="subscription_plan"
-            value={subscriptionChoice}
-            onChange={(event) => setSubscriptionChoice(event.target.value)}
-            className={fieldClassName}
-          >
-              <option value="">Je souhaite discuter d'une formule</option>
-            {subscriptionOptions.map((sub) => (
-              <option key={sub.slug} value={sub.slug}>
-                {sub.label}
-                {sub.priceLabel ? ` – ${sub.priceLabel}` : ""}
-              </option>
-            ))}
-          </select>
-          {selectedSubscriptionOption ? (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handlePaySubscription}
-                disabled={
-                  !paymentsEnabled ||
-                  isPaying ||
-                  !selectedSubscriptionOption.priceMinor
-                }
-                className={`inline-flex items-center px-4 py-2 rounded-full border text-xs font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
-              >
-                {isPaying ? "Redirection..." : "Payer l'abonnement"}
-              </button>
-            </div>
-          ) : null}
-        </div>
-      )}
-
-      <div>
-        <label className="block text-xs font-medium mb-1">Votre demande</label>
-        <textarea
-          rows={4}
-          name="message"
-          className={fieldClassName}
-          placeholder={
-            formMode === "subscription"
-              ? "Précisez la date de démarrage souhaitée, vos attentes et votre rythme."
-              : formMode === "service"
-                ? "Précisez la date souhaitée, l'adresse, les horaires et toute contrainte utile."
-                : formMode === "custom"
-                  ? "Décrivez la mission, le contexte, les personnes concernées et vos attentes."
-                  : "Précisez votre besoin, vos disponibilités et toute information utile."
-          }
-        />
-      </div>
-
-      <div className="flex items-center justify-between gap-4 pt-2">
-        <p className="text-[11px] text-neutral-400">
-          Les informations saisies sont utilisées uniquement pour traiter votre demande,
-          conformément à la réglementation en vigueur sur la protection des données.
-        </p>
-        <div className="flex flex-wrap gap-2 justify-end">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.submitButtonClassName}`}
-          >
-            {isSubmitting
-              ? "Envoi..."
-              : formMode === "subscription"
-                ? "Demander des informations sur la formule"
-                : formMode === "service"
-                  ? "Envoyer la réservation"
-                  : formMode === "custom"
-                    ? "Envoyer la demande sur-mesure"
-                    : "Envoyer la demande"}
-          </button>
-          {formMode === "service" ? (
-            <button
-              type="button"
-              onClick={handlePayNow}
-              disabled={
-                !paymentsEnabled ||
-                isPaying ||
-                !selectedServicePricing?.amountMinor ||
-                selectedService?.invoiceOnly
-              }
-              className={`inline-flex items-center px-5 py-2.5 rounded-full border text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
-            >
-              {isPaying ? "Redirection..." : "Payer maintenant"}
-            </button>
-          ) : null}
-          {selectedService?.invoiceOnly ? (
-            <a
-              href={selectedService.contactUrl || "#contact"}
-              className="inline-flex items-center px-5 py-2.5 rounded-full border border-neutral-500 text-sm font-semibold text-neutral-200 hover:bg-neutral-800/40 transition"
-            >
-              Contacter pour devis
-            </a>
-          ) : null}
-        </div>
-      </div>
+    <form ref={formRef} className="space-y-4" onSubmit={handleSubmit}>
+      <FormModeBanner formTheme={formTheme} modeSummary={modeSummary} />
+      <IdentityFields fieldClassName={fieldClassName} />
+      <SchedulingFields
+        fieldClassName={fieldClassName}
+        scheduledDate={scheduledDate}
+        setScheduledDate={setScheduledDate}
+        timeSlot={timeSlot}
+        setTimeSlot={setTimeSlot}
+        availableSlots={availableSlots}
+        slotsLoading={slotsLoading}
+      />
+      <ServiceFields
+        fieldClassName={fieldClassName}
+        isCustomRequest={isCustomRequest}
+        options={options}
+        serviceChoice={serviceChoice}
+        setServiceChoice={setServiceChoice}
+        selectedService={selectedService}
+        selectedServicePricing={selectedServicePricing}
+        selectedServiceHeadlinePrice={selectedServiceHeadlinePrice}
+        servicePricingMode={servicePricingMode}
+        setServicePricingMode={setServicePricingMode}
+        formTheme={formTheme}
+      />
+      <CustomRequestFields
+        fieldClassName={fieldClassName}
+        isCustomRequest={isCustomRequest}
+      />
+      <SubscriptionFields
+        fieldClassName={fieldClassName}
+        subscriptionOptions={subscriptionOptions}
+        subscriptionChoice={subscriptionChoice}
+        setSubscriptionChoice={setSubscriptionChoice}
+        selectedSubscriptionOption={selectedSubscriptionOption}
+        handlePaySubscription={handlePaySubscription}
+        paymentsEnabled={paymentsEnabled}
+        isPaying={isPaying}
+        formTheme={formTheme}
+      />
+      <MessageField fieldClassName={fieldClassName} formMode={formMode} />
+      <FormActions
+        formMode={formMode}
+        formTheme={formTheme}
+        isSubmitting={isSubmitting}
+        isPaying={isPaying}
+        handlePayNow={handlePayNow}
+        paymentsEnabled={paymentsEnabled}
+        selectedServicePricing={selectedServicePricing}
+        selectedService={selectedService}
+      />
       {submitStatus ? (
         <p className="text-xs text-neutral-200">{submitStatus}</p>
       ) : null}
