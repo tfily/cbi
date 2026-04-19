@@ -2,12 +2,19 @@ import Link from "next/link";
 import { getPostBySlug, getPostSlugs } from "../../../lib/wordpress";
 
 function cleanHtml(str) {
-  return String(str || "")
-    .replace(/<[^>]+>/g, "")
+  const noTags = String(str || "").replace(/<[^>]+>/g, "");
+  return noTags
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;|&rsquo;|&#8217;/g, "'")
+    .replace(/&#39;|&apos;|&rsquo;|&#8217;/g, "’")
+    .replace(/&ldquo;|&#8220;/g, "“")
+    .replace(/&rdquo;|&#8221;/g, "”")
+    .replace(/&eacute;/g, "é")
+    .replace(/&egrave;/g, "è")
+    .replace(/&ecirc;/g, "ê")
+    .replace(/&agrave;/g, "à")
+    .replace(/&ccedil;/g, "ç")
     .trim();
 }
 
@@ -35,10 +42,10 @@ export default async function NewsDetailPage({ params }) {
       <main className="max-w-3xl mx-auto px-4 py-16">
         <h1 className="text-2xl font-bold mb-3">Actualité introuvable</h1>
         <p className="text-sm text-neutral-600 mb-6">
-          Cette actualité n'existe plus ou n'est pas publiée.
+          Cette actualité n’existe plus ou n’est pas publiée.
         </p>
         <Link href="/" className="text-amber-800 hover:underline text-sm font-semibold">
-          Retour à l'accueil
+          Retour à l’accueil
         </Link>
       </main>
     );

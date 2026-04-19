@@ -158,7 +158,7 @@ export async function POST(request) {
     });
     if (slotIsAlreadyBooked) {
       return NextResponse.json(
-        { error: "Ce creneau est deja reserve. Merci de choisir un autre horaire." },
+        { error: "Ce créneau est déjà réservé. Merci de choisir un autre horaire." },
         { status: 409 }
       );
     }

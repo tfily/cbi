@@ -14,6 +14,11 @@ const NAV_ITEMS = [
 
 export default function SiteHeader({ showNavigation = true }) {
   const [open, setOpen] = useState(false);
+  const whatsappNumber = String(
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""
+  ).replace(/\D/g, "");
+  const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : "/#contact";
+  const whatsappIsConfigured = Boolean(whatsappNumber);
 
   return (
     <header className="border-b border-neutral-200 bg-white/90 backdrop-blur">
@@ -52,12 +57,22 @@ export default function SiteHeader({ showNavigation = true }) {
           ) : null}
 
           {showNavigation ? (
-            <Link
-              href="/#contact"
-              className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full bg-amber-700 text-xs font-semibold text-white hover:bg-amber-800"
-            >
-              Demander un service
-            </Link>
+            <div className="hidden sm:flex items-center gap-2">
+              <a
+                href={whatsappHref}
+                target={whatsappIsConfigured ? "_blank" : undefined}
+                rel={whatsappIsConfigured ? "noopener noreferrer" : undefined}
+                className="inline-flex items-center px-3 py-1.5 rounded-full border border-emerald-700 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
+              >
+                Nous joindre
+              </a>
+              <Link
+                href="/#contact"
+                className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-700 text-xs font-semibold text-white hover:bg-amber-800"
+              >
+                Parler de votre besoin
+              </Link>
+            </div>
           ) : <span className="hidden sm:block" />}
         </div>
 
@@ -78,8 +93,17 @@ export default function SiteHeader({ showNavigation = true }) {
               className="mt-1 inline-flex items-center px-3 py-1.5 rounded-full bg-amber-700 text-xs font-semibold text-white hover:bg-amber-800"
               onClick={() => setOpen(false)}
             >
-              Demander un service
+              Parler de votre besoin
             </Link>
+            <a
+              href={whatsappHref}
+              target={whatsappIsConfigured ? "_blank" : undefined}
+              rel={whatsappIsConfigured ? "noopener noreferrer" : undefined}
+              className="mt-1 inline-flex items-center px-3 py-1.5 rounded-full border border-emerald-700 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
+              onClick={() => setOpen(false)}
+            >
+              Nous joindre
+            </a>
           </div>
         ) : null}
       </div>

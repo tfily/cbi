@@ -7,12 +7,14 @@ function cleanHtml(str) {
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;|&rsquo;|&#8217;/g, "'")
-    .replace(/&ldquo;|&#8220;/g, '"')
-    .replace(/&rdquo;|&#8221;/g, '"')
-    .replace(/&eacute;/g, "e")
-    .replace(/&agrave;/g, "a")
-    .replace(/&ccedil;/g, "c");
+    .replace(/&#39;|&apos;|&rsquo;|&#8217;/g, "’")
+    .replace(/&ldquo;|&#8220;/g, "“")
+    .replace(/&rdquo;|&#8221;/g, "”")
+    .replace(/&eacute;/g, "é")
+    .replace(/&egrave;/g, "è")
+    .replace(/&ecirc;/g, "ê")
+    .replace(/&agrave;/g, "à")
+    .replace(/&ccedil;/g, "ç");
 }
 
 function buildExcerpt(html, fallback) {
@@ -29,7 +31,7 @@ export async function generateMetadata() {
     : "À propos";
   const description = buildExcerpt(
     aboutPage?.excerpt?.rendered || aboutPage?.content?.rendered,
-    "Decouvrez notre conciergerie et notre facon de simplifier votre quotidien."
+    "Découvrez notre conciergerie et notre façon de simplifier votre quotidien."
   );
 
   return {
@@ -60,7 +62,7 @@ export default async function AboutPage() {
   const introHtml = aboutPage?.excerpt?.rendered || null;
   const introText =
     siteInfo.description ||
-    "Une conciergerie humaine, locale et attentive qui orchestre chaque detail de votre quotidien.";
+    "Une conciergerie humaine, locale et attentive qui orchestre chaque détail de votre quotidien.";
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -129,7 +131,7 @@ export default async function AboutPage() {
               <p>
                 Nous accompagnons des particuliers exigeants dans la gestion de leur foyer, de
                 leurs animaux et de leurs déplacements à Paris et en petite couronne. Notre équipe
-                construit des solutions sur-mesure, de l intention au moindre détail.
+                construit des solutions sur-mesure, de l'intention au moindre détail.
               </p>
               <p>
                 Nous prenons le temps de comprendre vos habitudes, vos priorités et votre rythme
@@ -204,7 +206,7 @@ export default async function AboutPage() {
             href="/#contact"
             className="inline-flex items-center px-5 py-3 rounded-full bg-amber-700 text-white text-sm font-semibold shadow-sm hover:bg-amber-800 transition"
           >
-            Demander une prise de contact
+            Parler de votre besoin
           </a>
         </div>
       </section>

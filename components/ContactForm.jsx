@@ -244,7 +244,7 @@ function SchedulingFields({
   return (
     <div className="grid md:grid-cols-2 gap-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Date d'intervention</label>
+        <label className="block text-xs font-medium mb-1">Date d’intervention</label>
         <input
           type="date"
           name="scheduled_date"
@@ -386,7 +386,7 @@ function ServiceFields({
             type="text"
             name="service_type"
             className={fieldClassName}
-            placeholder="Ex : courses, pressing, garde d'animaux..."
+            placeholder="Ex : courses, pressing, garde d’animaux..."
           />
         )}
       </div>
@@ -487,7 +487,7 @@ function SubscriptionFields({
   return (
     <div className="space-y-3">
       <label className="block text-xs font-medium mb-1">
-        Formule d'abonnement (optionnel)
+        Formule d’abonnement (optionnel)
       </label>
       <select
         name="subscription_plan"
@@ -495,7 +495,7 @@ function SubscriptionFields({
         onChange={(event) => setSubscriptionChoice(event.target.value)}
         className={fieldClassName}
       >
-        <option value="">Je souhaite discuter d'une formule</option>
+        <option value="">Je souhaite discuter d’une formule</option>
         {subscriptionOptions.map((sub) => (
           <option key={sub.slug} value={sub.slug}>
             {sub.label}
@@ -513,7 +513,7 @@ function SubscriptionFields({
             }
             className={`inline-flex items-center px-4 py-2 rounded-full border text-xs font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
           >
-            {isPaying ? "Redirection..." : "Payer l'abonnement"}
+            {isPaying ? "Redirection..." : "Payer l’abonnement"}
           </button>
         </div>
       ) : null}
@@ -526,7 +526,7 @@ function MessageField({ fieldClassName, formMode }) {
     formMode === "subscription"
       ? "Précisez la date de démarrage souhaitée, vos attentes et votre rythme."
       : formMode === "service"
-        ? "Précisez la date souhaitée, l'adresse, les horaires et toute contrainte utile."
+        ? "Précisez la date souhaitée, l’adresse, les horaires et toute contrainte utile."
         : formMode === "custom"
           ? "Décrivez la mission, le contexte, les personnes concernées et vos attentes."
           : "Précisez votre besoin, vos disponibilités et toute information utile.";
@@ -564,17 +564,17 @@ function FormActions({
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.submitButtonClassName}`}
+          className={`inline-flex items-center whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.submitButtonClassName}`}
         >
           {isSubmitting
             ? "Envoi..."
             : formMode === "subscription"
-              ? "Demander des informations sur la formule"
+              ? "Demander la formule"
               : formMode === "service"
                 ? "Envoyer la réservation"
                 : formMode === "custom"
-                  ? "Envoyer la demande sur-mesure"
-                  : "Envoyer la demande"}
+                  ? "Envoyer le sur-mesure"
+                  : "Envoyer"}
         </button>
         {formMode === "service" ? (
           <button
@@ -586,7 +586,7 @@ function FormActions({
               !selectedServicePricing?.amountMinor ||
               selectedService?.invoiceOnly
             }
-            className={`inline-flex items-center px-5 py-2.5 rounded-full border text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
+            className={`inline-flex items-center whitespace-nowrap px-5 py-2.5 rounded-full border text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
           >
             {isPaying ? "Redirection..." : "Payer maintenant"}
           </button>
@@ -951,7 +951,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     const payable = selectedService;
     if (!selectedServicePricing?.amountMinor) {
       setPayError(
-        "Ce service n'a pas de tarif configuré dans WordPress. Merci de nous contacter."
+        "Ce service n’a pas de tarif configuré dans WordPress. Merci de nous contacter."
       );
       return;
     }
@@ -964,7 +964,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       return;
     }
     if (!booking.scheduledDate) {
-      setPayError("Merci de choisir une date d'intervention avant de payer.");
+      setPayError("Merci de choisir une date d’intervention avant de payer.");
       return;
     }
     if (isWeekendDate(booking.scheduledDate)) {
@@ -1025,7 +1025,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     const payable = selectedSubscriptionOption;
     if (!payable?.priceMinor) {
       setPayError(
-        "Cette formule n'a pas de tarif configuré dans WordPress. Merci de nous contacter."
+        "Cette formule n’a pas de tarif configuré dans WordPress. Merci de nous contacter."
       );
       return;
     }
@@ -1038,7 +1038,7 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       return;
     }
     if (!booking.scheduledDate) {
-      setPayError("Merci de choisir une date d'intervention avant de payer.");
+      setPayError("Merci de choisir une date d’intervention avant de payer.");
       return;
     }
     if (isWeekendDate(booking.scheduledDate)) {

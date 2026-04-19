@@ -6,9 +6,9 @@ import SiteHeader from "../components/SiteHeader";
 import GoogleAnalytics from "../components/GoogleAnalytics";
 
 export const metadata = {
-  title: "Conciergerie by Isa - Services de conciergerie à Paris",
+  title: "Conciergerie by Isa - Conciergerie privée à Paris",
   description:
-    "Conciergerie by Isa propose des services personnalisés pour simplifier le quotidien à Paris et en petite couronne.",
+    "Conciergerie by Isa accompagne votre quotidien à Paris et en proche couronne avec des services souples, fiables et discrets.",
 };
 
 function InstagramIcon(props) {
@@ -62,7 +62,7 @@ export default function RootLayout({ children }) {
               </div>
               <div className="text-center sm:text-right">
                 <p className="text-[11px] text-neutral-500">
-                  Zones : Paris 6e, 7e, 15e, 17e et 92 - services assurés et conformes RGPD.
+                  Paris et proche couronne • service discret, suivi clair, données traitées avec confidentialité.
                 </p>
                 <div className="mt-2 flex items-center justify-center sm:justify-end gap-3 text-xs">
                   <a
@@ -121,7 +121,7 @@ export default function RootLayout({ children }) {
             </div>
             <div className="text-center sm:text-right">
               <p className="text-[11px] text-neutral-500">
-                Zones : Paris 6e, 7e, 15e, 17e et 92 - services assurés et conformes RGPD.
+                Paris et proche couronne • service discret, suivi clair, données traitées avec confidentialité.
               </p>
               <div className="mt-2 flex items-center justify-center sm:justify-end gap-3 text-xs">
                 <a

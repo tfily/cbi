@@ -28,7 +28,7 @@ export default async function PaymentReturnPage({ searchParams }) {
         <section className="max-w-3xl mx-auto px-4 py-16 text-center space-y-4">
           <h1 className="text-3xl font-bold">Paiement</h1>
           <p className="text-sm text-neutral-700">
-            Nous n'avons pas pu identifier votre commande. Merci de nous contacter si
+            Nous n’avons pas pu identifier votre commande. Merci de nous contacter si
             nécessaire.
           </p>
           <a
@@ -133,7 +133,7 @@ export default async function PaymentReturnPage({ searchParams }) {
             href="/"
             className="inline-flex items-center px-5 py-2.5 rounded-full border border-amber-700 text-amber-800 text-sm font-semibold"
           >
-            Retour à l'accueil
+            Retour à l’accueil
           </a>
         </div>
       </section>

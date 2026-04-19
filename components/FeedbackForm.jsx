@@ -119,7 +119,7 @@ export default function FeedbackForm() {
           rows={6}
           name="message"
           required
-          placeholder="Dites-nous ce qui s'est bien passé, ce qui peut être amélioré et si vous recommanderiez le service."
+          placeholder="Dites-nous ce qui s’est bien passé, ce qui peut être amélioré et si vous recommanderiez le service."
           className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
         />
       </div>
@@ -144,7 +144,7 @@ export default function FeedbackForm() {
           href="/"
           className="inline-flex items-center rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50"
         >
-          Retour à l'accueil
+          Retour à l’accueil
         </a>
       </div>
 

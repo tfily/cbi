@@ -129,7 +129,7 @@ export default function AvailabilityPanel({ slug, itemType = "service" }) {
       {loading ? (
         <p className="text-sm text-neutral-500">Chargement des disponibilités...</p>
       ) : error ? (
-        <p className="text-sm text-rose-700">Erreur: {error}</p>
+        <p className="text-sm text-rose-700">Erreur : {error}</p>
       ) : days.length === 0 ? (
         <p className="text-sm text-neutral-500">Aucune disponibilité définie pour cette semaine.</p>
       ) : (
