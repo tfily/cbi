@@ -64,9 +64,6 @@ function getServicePriceDisplay(service) {
   if ((type === "fee" || !unitPrice) && feePrice) {
     return `Frais de service : ${formatEuroLabel(feePrice)}`;
   }
-  if (unitPrice) {
-    return `Prix unitaire : ${formatEuroLabel(unitPrice)}`;
-  }
   return "";
 }
 
@@ -271,7 +268,7 @@ export default async function HomePage({ searchParams }) {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/60 bg-white/70 p-4 backdrop-blur">
+                <div className="rounded-2xl border border-white/35 bg-white/35 p-4 backdrop-blur-md">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
                     Zone
                   </p>
@@ -279,7 +276,7 @@ export default async function HomePage({ searchParams }) {
                     Paris et proche couronne
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/60 bg-white/70 p-4 backdrop-blur">
+                <div className="rounded-2xl border border-white/35 bg-white/35 p-4 backdrop-blur-md">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
                     Réponse
                   </p>
@@ -287,7 +284,7 @@ export default async function HomePage({ searchParams }) {
                     Retour rapide et suivi clair
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/60 bg-white/70 p-4 backdrop-blur">
+                <div className="rounded-2xl border border-white/35 bg-white/35 p-4 backdrop-blur-md">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
                     Format
                   </p>
@@ -299,7 +296,7 @@ export default async function HomePage({ searchParams }) {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-3xl border border-amber-900/15 bg-white/80 p-6 shadow-sm backdrop-blur md:p-7">
+              <div className="rounded-3xl border border-white/35 bg-white/40 p-6 shadow-sm backdrop-blur-md md:p-7">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-800">
                   Offre signature
                 </p>
@@ -320,7 +317,7 @@ export default async function HomePage({ searchParams }) {
                 </a>
               </div>
 
-              <div className="rounded-3xl border border-neutral-200 bg-white/85 p-6 shadow-sm backdrop-blur">
+              <div className="rounded-3xl border border-white/35 bg-white/45 p-6 shadow-sm backdrop-blur-md">
                 <h3 className="mb-4 text-lg font-semibold text-neutral-950">
                   Comment ça marche
                 </h3>

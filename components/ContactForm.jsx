@@ -330,9 +330,7 @@ function ServiceFields({
                   {option.label}
                   {option.priceKind === "fee" && option.priceLabel
                     ? ` - Frais de service ${formatEuroLabel(option.priceLabel)}`
-                    : option.priceLabel
-                      ? ` - Prix unitaire ${formatEuroLabel(option.priceLabel)}`
-                      : option.bookingFeeMinor
+                    : option.bookingFeeMinor
                         ? ` - Frais de service ${formatEuroLabel(
                             (option.bookingFeeMinor / 100).toFixed(2)
                           )}`
@@ -365,12 +363,6 @@ function ServiceFields({
                   onChange={(event) => setServicePricingMode(event.target.value)}
                   className={fieldClassName}
                 >
-                  <option value="unit">
-                    Prix unitaire
-                    {selectedService.priceLabel
-                      ? ` - ${formatEuroLabel(selectedService.priceLabel)}`
-                      : ""}
-                  </option>
                   {selectedService.packOptions.map((pack) => (
                     <option key={pack.mode} value={pack.mode}>
                       {pack.label}
@@ -829,9 +821,6 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     if (selectedService.priceKind === "fee" && selectedService.priceLabel) {
       return `Frais de service ${formatEuroLabel(selectedService.priceLabel)}`;
     }
-    if (selectedService.priceLabel) {
-      return `Prix unitaire ${formatEuroLabel(selectedService.priceLabel)}`;
-    }
     if (selectedService.bookingFeeMinor) {
       return `Frais de service ${formatEuroLabel(
         (selectedService.bookingFeeMinor / 100).toFixed(2)
@@ -864,12 +853,13 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   ]);
 
   useEffect(() => {
-    const availableModes = new Set([
-      "unit",
-      ...((selectedService?.packOptions || []).map((p) => p.mode)),
-    ]);
-    if (!availableModes.has(servicePricingMode)) {
+    const availableModes = new Set((selectedService?.packOptions || []).map((p) => p.mode));
+    if (!availableModes.size) {
       setServicePricingMode("unit");
+      return;
+    }
+    if (!availableModes.has(servicePricingMode)) {
+      setServicePricingMode(selectedService.packOptions[0].mode);
     }
   }, [selectedService, servicePricingMode]);
 
