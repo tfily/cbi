@@ -157,7 +157,7 @@ export default async function AboutPage() {
             </li>
             <li>
               <span className="font-semibold text-neutral-900">Souplesse :</span> des prestations
-              à la carte, ponctuelles ou récurrentes selon votre agenda.
+              ponctuelles ou récurrentes selon votre agenda.
             </li>
             <li>
               <span className="font-semibold text-neutral-900">Qualité :</span> chaque mission est

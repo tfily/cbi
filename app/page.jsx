@@ -93,6 +93,12 @@ function getPackPrices(meta) {
     .map((p) => `Pack ${p.size}: ${p.value}`);
 }
 
+function getDefaultPackModeFromLabels(packLabels) {
+  const firstPackLabel = Array.isArray(packLabels) ? packLabels[0] : "";
+  const match = String(firstPackLabel || "").match(/Pack\s+(\d+)/i);
+  return match ? `pack${match[1]}` : "";
+}
+
 function isPlaceholderNewsItem(item) {
   const title = normalizeKey(cleanHtml(item?.title?.rendered || ""));
   const excerpt = normalizeKey(cleanHtml(item?.excerpt?.rendered || ""));
@@ -422,14 +428,14 @@ export default async function HomePage({ searchParams }) {
         <div className="mb-8 flex items-end justify-between gap-4">
           <div className="max-w-2xl">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-800">
-              Services à la carte
+              Packs en ligne
             </p>
             <h2 className="mb-3 text-2xl font-bold text-neutral-950">
               Des interventions concrètes, selon votre rythme.
             </h2>
             <p className="text-sm leading-relaxed text-neutral-600">
-              Chaque service peut être demandé ponctuellement ou intégré à une
-              organisation plus régulière, selon votre quotidien.
+              Retrouvez les services disponibles à la réservation en ligne,
+              avec leurs packs clairement présentés.
             </p>
           </div>
           <a
@@ -455,6 +461,10 @@ export default async function HomePage({ searchParams }) {
     media?.media_details?.sizes?.medium?.source_url || media?.source_url || null;
   const priceLabel = getServicePriceDisplay(service);
   const packPriceLabels = getPackPrices(service.meta);
+  const defaultPackMode = getDefaultPackModeFromLabels(packPriceLabels);
+  const contactHref = `/?service=${encodeURIComponent(service.slug)}${
+    defaultPackMode ? `&price_mode=${encodeURIComponent(defaultPackMode)}` : ""
+  }#contact`;
 
   return (
     <article
@@ -478,7 +488,7 @@ export default async function HomePage({ searchParams }) {
         <h3 className="mb-2 text-lg font-semibold text-neutral-950 group-hover:text-amber-800">
           {cleanHtml(service.title.rendered)}
         </h3>
-        {priceLabel ? (
+        {!packPriceLabels.length && priceLabel ? (
           <p className="text-sm font-semibold text-amber-800 mb-1">{priceLabel}</p>
         ) : null}
         {packPriceLabels.length > 0 ? (
@@ -507,7 +517,7 @@ export default async function HomePage({ searchParams }) {
           Voir disponibilités
         </a>
         <a
-          href={`/?service=${encodeURIComponent(service.slug)}#contact`}
+          href={contactHref}
           className="inline-flex text-sm font-semibold text-neutral-600 hover:underline"
         >
           Demander ce service

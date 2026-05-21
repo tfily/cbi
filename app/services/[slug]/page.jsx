@@ -19,21 +19,10 @@ function cleanHtml(str) {
     .replace(/&ccedil;/g, "ç");
 }
 
-function formatEuroLabel(value) {
-  if (value == null || value === "") return "";
-  const raw = String(value).trim();
-  if (!raw) return "";
-  if (raw.includes("€")) return raw;
-  if (/eur/i.test(raw)) return raw.replace(/eur/gi, "€");
-  const normalized = raw.replace(",", ".");
-  const numeric = Number(normalized);
-  if (!Number.isNaN(numeric)) {
-    const fixed = Number.isInteger(numeric)
-      ? String(numeric)
-      : numeric.toFixed(2).replace(/\.00$/, "").replace(".", ",");
-    return `${fixed}€`;
-  }
-  return `${raw}€`;
+function decodeHtml(str) {
+  return cleanHtml(str)
+    .replace(/&euro;/g, "€")
+    .replace(/&#8364;/g, "€");
 }
 
 function normalizeKey(value) {
@@ -65,6 +54,31 @@ function getPackPrices(meta) {
     }
   });
   return packs.filter((p) => p.size > 1).sort((a, b) => a.size - b.size);
+}
+
+function getPackPricesFromContent(html) {
+  const text = decodeHtml(html).replace(/\s+/g, " ").trim();
+  if (!text) return [];
+
+  const matches = [...text.matchAll(/Pack\s+\d+[^:.!?]*:\s*[^.·!?]+/gi)];
+  return matches.map((match) => match[0].trim());
+}
+
+function stripTariffParagraphs(html) {
+  if (!html) return "";
+  return String(html)
+    .replace(/<p>\s*<strong>\s*Tarifs?\s*:?\s*<\/strong>.*?<\/p>/gis, "")
+    .replace(/<p>\s*Tarifs?\s*:.*?<\/p>/gis, "")
+    .replace(/<p>\s*Prix unitaire\s*:.*?<\/p>/gis, "")
+    .replace(/<p>\s*Frais de service\s*:.*?<\/p>/gis, "")
+    .replace(/<li>\s*Tarifs?\s*:.*?<\/li>/gis, "")
+    .replace(/<li>\s*Prix unitaire\s*:.*?<\/li>/gis, "")
+    .replace(/<li>\s*Frais de service\s*:.*?<\/li>/gis, "");
+}
+
+function getDefaultPackMode(packPrices) {
+  const firstPack = Array.isArray(packPrices) ? packPrices[0] : null;
+  return firstPack?.size ? `pack${firstPack.size}` : "";
 }
 
 export async function generateStaticParams() {
@@ -111,24 +125,27 @@ export default async function ServicePage({ params }) {
     media?.media_details?.sizes?.medium_large?.source_url ||
     media?.source_url ||
     null;
-  const unitPrice = service.meta?.cbi_price || service.meta?.price || "";
-  const feePrice =
-    service.meta?.cbi_service_fee ||
-    service.meta?.cbi_booking_fee ||
-    (normalizeKey(cleanHtml(service.title.rendered)) === "reservation de transports"
-      ? "5"
-      : "");
-  const priceType = String(service.meta?.cbi_price_kind || "").toLowerCase();
-  const priceDisplay =
-    ((priceType === "fee" || !unitPrice) && feePrice)
-      ? `Frais de service : ${formatEuroLabel(feePrice)}`
-      : unitPrice
-        ? `Prix unitaire : ${formatEuroLabel(unitPrice)}`
-        : "";
-  const packPrices = getPackPrices(service.meta);
+  const contentHtml = service.content?.rendered || "";
+  const metaPackEntries = getPackPrices(service.meta);
+  const metaPackPrices = metaPackEntries.map((p) => `Pack ${p.size} : ${p.value}`);
+  const derivedPackPrices =
+    metaPackPrices.length > 0 ? metaPackPrices : getPackPricesFromContent(contentHtml);
+  const defaultPackMode = getDefaultPackMode(
+    metaPackEntries.length > 0
+      ? metaPackEntries
+      : derivedPackPrices
+          .map((label) => {
+            const match = label.match(/Pack\s+(\d+)/i);
+            return match ? { size: Number(match[1]) } : null;
+          })
+          .filter(Boolean)
+  );
+  const contactHref = `/?service=${encodeURIComponent(resolvedParams.slug)}${
+    defaultPackMode ? `&price_mode=${encodeURIComponent(defaultPackMode)}` : ""
+  }#contact`;
   const serviceTitle = cleanHtml(service.title.rendered);
   const excerptHtml = service.excerpt?.rendered || "";
-  const contentHtml = service.content?.rendered || "";
+  const cleanedContentHtml = stripTariffParagraphs(contentHtml);
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -144,18 +161,15 @@ export default async function ServicePage({ params }) {
           <div className="grid gap-8 md:grid-cols-[1.08fr_0.92fr] md:items-start">
             <div>
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-800">
-                Service à la carte
+                Packs en ligne
               </p>
               <h1 className="mb-3 text-3xl font-bold text-neutral-950 md:text-5xl">
                 {serviceTitle}
               </h1>
 
-              {priceDisplay ? (
-                <p className="mb-2 text-sm font-semibold text-amber-800">{priceDisplay}</p>
-              ) : null}
-              {packPrices.length > 0 ? (
+              {derivedPackPrices.length > 0 ? (
                 <p className="mb-5 text-sm font-semibold text-neutral-600">
-                  {packPrices.map((p) => `Pack ${p.size}: ${p.value}`).join(" · ")}
+                  {derivedPackPrices.join(" · ")}
                 </p>
               ) : null}
 
@@ -168,10 +182,10 @@ export default async function ServicePage({ params }) {
 
               <div className="flex flex-wrap gap-3">
                 <a
-                  href={`/?service=${encodeURIComponent(resolvedParams.slug)}#contact`}
+                  href={contactHref}
                   className="inline-flex items-center rounded-full bg-amber-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-amber-800"
                 >
-                  Demander ce service
+                  Choisir ce service en ligne
                 </a>
                 <a
                   href="#availability"
@@ -237,8 +251,25 @@ export default async function ServicePage({ params }) {
             <h2 className="mb-5 text-2xl font-semibold text-neutral-950">
               Détails de la prestation
             </h2>
+            {derivedPackPrices.length > 0 ? (
+              <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-800">
+                  Packs disponibles
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {derivedPackPrices.map((label) => (
+                    <span
+                      key={label}
+                      className="inline-flex rounded-full border border-amber-300 bg-white px-3 py-1 text-sm font-medium text-neutral-800"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="prose prose-sm max-w-none text-neutral-800">
-              <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+              <div dangerouslySetInnerHTML={{ __html: cleanedContentHtml }} />
             </div>
           </div>
 
@@ -260,10 +291,10 @@ export default async function ServicePage({ params }) {
               </h3>
               <p className="mb-4 text-sm leading-relaxed text-neutral-700">
                 Décrivez votre contexte et nous revenons vers vous pour confirmer
-                le bon format, le tarif et la disponibilité la plus adaptée.
+                le bon format, le pack adapté et la disponibilité.
               </p>
               <a
-                href={`/?service=${encodeURIComponent(resolvedParams.slug)}#contact`}
+                href={contactHref}
                 className="inline-flex items-center rounded-full bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800"
               >
                 Demander ce service
@@ -288,7 +319,7 @@ export default async function ServicePage({ params }) {
                 </p>
               </div>
               <a
-                href={`/?service=${encodeURIComponent(resolvedParams.slug)}#contact`}
+                href={contactHref}
                 className="inline-flex items-center rounded-full bg-amber-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-amber-800"
               >
                 Demander ce service
