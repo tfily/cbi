@@ -1,7 +1,14 @@
-import { getServiceBySlug, getServiceSlugs } from "../../../lib/wordpress";
+import {
+  getServiceBySlug,
+  getServiceSlugs,
+  getServices,
+  getSubscriptions,
+} from "../../../lib/wordpress";
+import { getPublishedFeedback } from "../../../lib/feedback";
 import Link from "next/link";
 import Image from "next/image";
 import AvailabilityPanel from "../../../components/AvailabilityPanel";
+import TestimonialsSection from "../../../components/TestimonialsSection";
 import { getBaseUrl, getCanonicalUrl } from "../../../lib/site";
 
 function cleanHtml(str) {
@@ -156,7 +163,14 @@ export async function generateMetadata({ params }) {
 
 export default async function ServicePage({ params }) {
   const resolvedParams = await params;
-  const service = await getServiceBySlug(resolvedParams.slug).catch(() => null);
+  const [service, services, subscriptions, testimonials] = await Promise.all([
+    getServiceBySlug(resolvedParams.slug).catch(() => null),
+    getServices().catch(() => []),
+    getSubscriptions().catch(() => []),
+    getPublishedFeedback({ serviceSlug: resolvedParams.slug, limit: 3 }).catch(
+      () => []
+    ),
+  ]);
 
   if (!service) {
     return (
@@ -206,6 +220,22 @@ export default async function ServicePage({ params }) {
   const serviceOffers = derivedPackPrices
     .map((label) => parseOfferFromPackLabel(label, serviceUrl))
     .filter(Boolean);
+  const relatedServices = (services || [])
+    .filter((item) => item?.slug && item.slug !== resolvedParams.slug)
+    .slice(0, 3)
+    .map((item) => ({
+      slug: item.slug,
+      title: cleanHtml(item?.title?.rendered || ""),
+    }))
+    .filter((item) => item.slug && item.title);
+  const highlightedSubscriptions = (subscriptions || [])
+    .slice(0, 2)
+    .map((item) => ({
+      slug: item.slug,
+      title: cleanHtml(item?.title?.rendered || ""),
+      price: item?.meta?.cbi_price || "",
+    }))
+    .filter((item) => item.slug && item.title);
   const serviceSchema = buildServiceSchema({
     serviceTitle,
     serviceUrl,
@@ -213,6 +243,7 @@ export default async function ServicePage({ params }) {
     offers: serviceOffers,
     heroUrl,
   });
+  const localServiceLead = `Ce service de conciergerie à Paris et en proche couronne convient aux besoins ponctuels comme aux organisations récurrentes, avec un cadre simple et un suivi discret.`;
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -339,6 +370,9 @@ export default async function ServicePage({ params }) {
                 </div>
               </div>
             ) : null}
+            <p className="mb-6 text-sm leading-relaxed text-neutral-600">
+              {localServiceLead}
+            </p>
             <div className="prose prose-sm max-w-none text-neutral-800">
               <div dangerouslySetInnerHTML={{ __html: cleanedContentHtml }} />
             </div>
@@ -373,10 +407,67 @@ export default async function ServicePage({ params }) {
             </div>
           </aside>
         </div>
+
+        {relatedServices.length > 0 || highlightedSubscriptions.length > 0 ? (
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+            {relatedServices.length > 0 ? (
+              <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
+                <h3 className="mb-3 text-lg font-semibold text-neutral-950">
+                  Services complémentaires
+                </h3>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {relatedServices.map((item) => (
+                    <a
+                      key={item.slug}
+                      href={`/services/${item.slug}`}
+                      className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-800 transition hover:border-amber-200 hover:text-amber-800"
+                    >
+                      {item.title}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {highlightedSubscriptions.length > 0 ? (
+              <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+                <h3 className="mb-3 text-lg font-semibold text-neutral-950">
+                  Besoin d’un cadre récurrent ?
+                </h3>
+                <p className="mb-4 text-sm leading-relaxed text-neutral-700">
+                  Si cette demande revient souvent, une formule d’abonnement peut
+                  offrir plus de visibilité et une organisation plus fluide.
+                </p>
+                <div className="grid gap-3">
+                  {highlightedSubscriptions.map((item) => (
+                    <a
+                      key={item.slug}
+                      href={`/subscriptions/${item.slug}`}
+                      className="rounded-2xl border border-amber-300 bg-white px-4 py-3 text-sm font-medium text-neutral-800 transition hover:border-amber-400 hover:text-amber-800"
+                    >
+                      {item.title}
+                      {item.price ? ` • ${item.price}` : ""}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </section>
 
       <section className="max-w-5xl mx-auto px-4 pb-16">
         <div className="space-y-6">
+          {testimonials.length > 0 ? (
+            <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm md:p-8">
+              <TestimonialsSection
+                reviews={testimonials}
+                showService={false}
+                title="Retours de clients sur cette prestation."
+                intro="Avis issus de commandes réelles et publiés uniquement après validation."
+              />
+            </div>
+          ) : null}
           <AvailabilityPanel slug={resolvedParams.slug} itemType="service" />
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

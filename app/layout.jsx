@@ -9,11 +9,11 @@ import { getBaseUrl } from "../lib/site";
 export const metadata = {
   metadataBase: new URL(getBaseUrl()),
   title: {
-    default: "Conciergerie by Isa - Conciergerie privée à Paris",
+    default: "Conciergerie by Isa - Conciergerie privée à Paris et proche couronne",
     template: "%s",
   },
   description:
-    "Conciergerie by Isa accompagne votre quotidien à Paris et en proche couronne avec des services souples, fiables et discrets.",
+    "Conciergerie privée à Paris et proche couronne : gestion du quotidien, animaux, intendance, déplacements et services sur-mesure avec un suivi fiable et discret.",
   alternates: {
     canonical: "/",
   },
@@ -26,15 +26,15 @@ export const metadata = {
     locale: "fr_FR",
     url: "/",
     siteName: "Conciergerie by Isa",
-    title: "Conciergerie by Isa - Conciergerie privée à Paris",
+    title: "Conciergerie by Isa - Conciergerie privée à Paris et proche couronne",
     description:
-      "Conciergerie by Isa accompagne votre quotidien à Paris et en proche couronne avec des services souples, fiables et discrets.",
+      "Conciergerie privée à Paris et proche couronne : gestion du quotidien, animaux, intendance, déplacements et services sur-mesure avec un suivi fiable et discret.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Conciergerie by Isa - Conciergerie privée à Paris",
+    title: "Conciergerie by Isa - Conciergerie privée à Paris et proche couronne",
     description:
-      "Conciergerie by Isa accompagne votre quotidien à Paris et en proche couronne avec des services souples, fiables et discrets.",
+      "Conciergerie privée à Paris et proche couronne : gestion du quotidien, animaux, intendance, déplacements et services sur-mesure avec un suivi fiable et discret.",
   },
 };
 

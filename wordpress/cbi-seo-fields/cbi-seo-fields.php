@@ -51,6 +51,13 @@ function cbi_feedback_meta_keys() {
 		'cbi_customer_email'      => 'string',
 		'cbi_feedback_message'    => 'string',
 		'cbi_feedback_publish_ok' => 'string',
+		'cbi_service_name'        => 'string',
+		'cbi_service_slug'        => 'string',
+		'cbi_item_type'           => 'string',
+		'cbi_pricing_label'       => 'string',
+		'cbi_order_date'          => 'string',
+		'cbi_scheduled_date'      => 'string',
+		'cbi_time_slot'           => 'string',
 	);
 }
 
@@ -210,6 +217,13 @@ function cbi_render_contact_request_metabox( $post ) {
 function cbi_render_feedback_metabox( $post ) {
 	$fields = array(
 		'Commande'               => get_post_meta( $post->ID, 'cbi_order_id', true ),
+		'Service'                => get_post_meta( $post->ID, 'cbi_service_name', true ),
+		'Slug service'           => get_post_meta( $post->ID, 'cbi_service_slug', true ),
+		'Type de prestation'     => get_post_meta( $post->ID, 'cbi_item_type', true ),
+		'Pack / formule'         => get_post_meta( $post->ID, 'cbi_pricing_label', true ),
+		'Date de commande'       => get_post_meta( $post->ID, 'cbi_order_date', true ),
+		'Date prevue'            => get_post_meta( $post->ID, 'cbi_scheduled_date', true ),
+		'Creneau'                => get_post_meta( $post->ID, 'cbi_time_slot', true ),
 		'Note'                   => get_post_meta( $post->ID, 'cbi_rating', true ),
 		'Nom client'             => get_post_meta( $post->ID, 'cbi_customer_name', true ),
 		'Email client'           => get_post_meta( $post->ID, 'cbi_customer_email', true ),
@@ -230,6 +244,51 @@ function cbi_render_feedback_metabox( $post ) {
 	}
 	echo '</div>';
 }
+
+function cbi_feedback_admin_columns( $columns ) {
+	return array(
+		'cb'          => isset( $columns['cb'] ) ? $columns['cb'] : '',
+		'title'       => 'Avis',
+		'service'     => 'Service',
+		'rating'      => 'Note',
+		'customer'    => 'Client',
+		'publish_ok'  => 'Publication',
+		'date'        => isset( $columns['date'] ) ? $columns['date'] : 'Date',
+	);
+}
+add_filter( 'manage_cbi-feedback_posts_columns', 'cbi_feedback_admin_columns' );
+
+function cbi_feedback_admin_custom_column( $column, $post_id ) {
+	if ( 'service' === $column ) {
+		$service_name = (string) get_post_meta( $post_id, 'cbi_service_name', true );
+		$pricing      = (string) get_post_meta( $post_id, 'cbi_pricing_label', true );
+		echo esc_html( $service_name );
+		if ( '' !== $pricing ) {
+			echo '<br /><span style="color:#666;">' . esc_html( $pricing ) . '</span>';
+		}
+		return;
+	}
+
+	if ( 'rating' === $column ) {
+		echo esc_html( get_post_meta( $post_id, 'cbi_rating', true ) );
+		return;
+	}
+
+	if ( 'customer' === $column ) {
+		$name  = (string) get_post_meta( $post_id, 'cbi_customer_name', true );
+		$email = (string) get_post_meta( $post_id, 'cbi_customer_email', true );
+		echo esc_html( $name );
+		if ( '' !== $email ) {
+			echo '<br /><span style="color:#666;">' . esc_html( $email ) . '</span>';
+		}
+		return;
+	}
+
+	if ( 'publish_ok' === $column ) {
+		echo '1' === (string) get_post_meta( $post_id, 'cbi_feedback_publish_ok', true ) ? 'Oui' : 'Non';
+	}
+}
+add_action( 'manage_cbi-feedback_posts_custom_column', 'cbi_feedback_admin_custom_column', 10, 2 );
 
 function cbi_seo_render_metabox( $post ) {
 	wp_nonce_field( 'cbi_seo_fields_save', 'cbi_seo_fields_nonce' );

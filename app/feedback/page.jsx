@@ -11,8 +11,8 @@ export default function FeedbackPage() {
           </p>
           <h1 className="text-3xl font-bold mb-3">Donner votre avis</h1>
           <p className="text-sm text-neutral-600 mb-8">
-            Votre retour nous aide à améliorer le service et à affiner nos
-            prestations futures.
+            Votre retour est rattaché à votre commande, relu avant publication
+            et nous aide à améliorer le service comme les prestations futures.
           </p>
 
           <Suspense

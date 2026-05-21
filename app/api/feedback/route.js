@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+import {
+  buildOrderReviewContext,
+  buildReviewTitle,
+  getOrderReviewContext,
+} from "../../../lib/feedback";
+import { getWooOrder } from "../../../lib/woocommerce";
 
 export const runtime = "nodejs";
 
@@ -62,17 +68,39 @@ export async function POST(request) {
       );
     }
 
+    let reviewContext;
+    try {
+      reviewContext = await getOrderReviewContext(orderId, email);
+    } catch {
+      return NextResponse.json(
+        { error: "Cette commande n’a pas pu être vérifiée." },
+        { status: 403 }
+      );
+    }
+
     const payload = {
-      title: title || `Avis commande #${orderId}`,
+      title:
+        title ||
+        buildReviewTitle({
+          orderId,
+          serviceName: reviewContext.serviceName,
+        }),
       content: message,
-      status: "publish",
+      status: "pending",
       meta: {
         cbi_order_id: String(orderId),
         cbi_rating: String(numericRating),
-        cbi_customer_name: name || "",
-        cbi_customer_email: email,
+        cbi_customer_name: name || reviewContext.customerName || "",
+        cbi_customer_email: reviewContext.customerEmail,
         cbi_feedback_message: message,
         cbi_feedback_publish_ok: allowPublish ? "1" : "0",
+        cbi_service_name: reviewContext.serviceName,
+        cbi_service_slug: reviewContext.serviceSlug,
+        cbi_item_type: reviewContext.itemType,
+        cbi_pricing_label: reviewContext.pricingLabel,
+        cbi_order_date: reviewContext.orderDate,
+        cbi_scheduled_date: reviewContext.scheduledDate,
+        cbi_time_slot: reviewContext.timeSlot,
       },
     };
 
@@ -95,12 +123,46 @@ export async function POST(request) {
     }
 
     const created = await res.json();
-    return NextResponse.json({ ok: true, id: created.id });
+    return NextResponse.json({
+      ok: true,
+      id: created.id,
+      status: created.status || "pending",
+    });
   } catch (error) {
     console.error("[Feedback] create failed:", error);
     return NextResponse.json(
       { error: "Failed to save feedback." },
       { status: 500 }
+    );
+  }
+}
+
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const orderId = String(searchParams.get("orderId") || "").trim();
+    const email = String(searchParams.get("email") || "").trim();
+
+    if (!orderId || !email) {
+      return NextResponse.json(
+        { error: "Missing order verification parameters." },
+        { status: 400 }
+      );
+    }
+
+    const context = await getOrderReviewContext(orderId, email);
+    const order = await getWooOrder(orderId);
+    const reviewContext = buildOrderReviewContext(order) || context;
+
+    return NextResponse.json({
+      ok: true,
+      order: reviewContext,
+    });
+  } catch (error) {
+    console.error("[Feedback] load failed:", error);
+    return NextResponse.json(
+      { error: "Impossible de vérifier cette commande." },
+      { status: 403 }
     );
   }
 }

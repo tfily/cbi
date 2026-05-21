@@ -6,8 +6,10 @@ import {
   getSiteInfo,
   getAboutPage,
 } from "../lib/wordpress";
+import { getPublishedFeedback } from "../lib/feedback";
 import { getVisibleProviders } from "../data/providers";
 import ContactForm from "../components/ContactForm";
+import TestimonialsSection from "../components/TestimonialsSection";
 import { Suspense } from "react";
 import Image from "next/image";
 import { getBaseUrl, getCanonicalUrl, isPlaceholderNewsItem } from "../lib/site";
@@ -16,6 +18,9 @@ export const metadata = {
   alternates: {
     canonical: getCanonicalUrl("/"),
   },
+  title: "Conciergerie by Isa - Conciergerie privée à Paris et proche couronne",
+  description:
+    "Conciergerie privée à Paris et proche couronne pour déléguer les courses, animaux, déplacements, intendance et demandes sur-mesure avec un suivi discret et réactif.",
 };
 
 function cleanHtml(str) {
@@ -231,6 +236,17 @@ function buildHomeSchema({
   };
 }
 
+function getFeaturedServiceLinks(services) {
+  return (services || [])
+    .slice(0, 4)
+    .map((service) => ({
+      slug: service.slug,
+      title: cleanHtml(service?.title?.rendered || ""),
+      excerpt: cleanHtml(service?.excerpt?.rendered || "").slice(0, 120),
+    }))
+    .filter((service) => service.slug && service.title);
+}
+
 export default async function HomePage({ searchParams }) {
   const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
   const resolvedSearchParams = (await searchParams) || {};
@@ -283,13 +299,15 @@ export default async function HomePage({ searchParams }) {
     );
   }
 
-  const [services, news, subscriptions, infoBoxes, siteInfo] = await Promise.all([
-    getServices().catch(() => []),
-    getLatestNews(2).catch(() => []),
-    getSubscriptions().catch(() => []),
-    getInfoBoxes().catch(() => []),
-    getSiteInfo().catch(() => ({ name: "Conciergerie by Isa", description: "" })),
-  ]);
+  const [services, news, subscriptions, infoBoxes, siteInfo, testimonials] =
+    await Promise.all([
+      getServices().catch(() => []),
+      getLatestNews(2).catch(() => []),
+      getSubscriptions().catch(() => []),
+      getInfoBoxes().catch(() => []),
+      getSiteInfo().catch(() => ({ name: "Conciergerie by Isa", description: "" })),
+      getPublishedFeedback({ limit: 3 }).catch(() => []),
+    ]);
   const visibleNews = (news || []).filter((item) => !isPlaceholderNewsItem(item));
   const providerCategories = getVisibleProviders();
   const signatureSubscriptionSlug = pickSignatureSubscriptionSlug(subscriptions);
@@ -302,6 +320,7 @@ export default async function HomePage({ searchParams }) {
     subscriptions,
     signatureOfferText,
   });
+  const featuredServiceLinks = getFeaturedServiceLinks(services);
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -326,12 +345,12 @@ export default async function HomePage({ searchParams }) {
                   Conciergerie privée à Paris
                 </p>
                 <h1 className="max-w-2xl text-3xl font-bold leading-tight text-neutral-950 md:text-5xl">
-                  Simplifier votre quotidien, avec discrétion et précision.
+                  Conciergerie privée à Paris pour simplifier votre quotidien.
                 </h1>
                 <p className="max-w-xl text-sm leading-relaxed text-neutral-800 md:text-base">
-                  Courses, animaux, intendance, déplacements, réservations :
-                  Conciergerie by Isa vous accompagne à Paris et en proche
-                  couronne avec un service souple, fiable et humain.
+                  Courses, animaux, intendance, déplacements, réservations et
+                  demandes sur-mesure : Conciergerie by Isa vous accompagne à
+                  Paris et en proche couronne avec un service discret, fiable et humain.
                 </p>
               </div>
 
@@ -444,11 +463,11 @@ export default async function HomePage({ searchParams }) {
                 Pourquoi choisir Isa
               </p>
               <h2 className="text-2xl font-bold text-neutral-950">
-                Une conciergerie pensée pour les besoins réels du quotidien.
+                Une conciergerie locale pensée pour les besoins réels du quotidien.
               </h2>
               <p className="text-sm leading-relaxed text-neutral-600">
-                Une réponse claire, un cadre fiable et des prestations souples
-                pour déléguer en toute confiance.
+                Une réponse claire pour déléguer à Paris et en proche couronne :
+                prestations ponctuelles, besoins récurrents et organisation sur-mesure.
               </p>
             </div>
 
@@ -501,6 +520,63 @@ export default async function HomePage({ searchParams }) {
         </div>
       </section>
 
+      <section className="border-b border-neutral-200 bg-neutral-50">
+        <div className="max-w-5xl mx-auto px-4 py-12 md:py-14">
+          <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-start">
+            <div className="space-y-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-800">
+                Conciergerie à Paris
+              </p>
+              <h2 className="text-2xl font-bold text-neutral-950">
+                Une conciergerie privée pour Paris et proche couronne.
+              </h2>
+              <p className="text-sm leading-relaxed text-neutral-700">
+                Nous accompagnons les particuliers et foyers actifs qui veulent
+                déléguer des tâches concrètes du quotidien, organiser leurs
+                déplacements, gérer leurs absences ou mettre en place une aide
+                plus régulière à Paris et dans les communes voisines.
+              </p>
+              <p className="text-sm leading-relaxed text-neutral-700">
+                L’objectif est simple : offrir un cadre fiable, une réponse
+                rapide et une exécution discrète pour les besoins pratiques du
+                quotidien comme pour les demandes plus personnalisées.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+                <h3 className="mb-2 text-base font-semibold text-neutral-950">
+                  Zones fréquemment demandées
+                </h3>
+                <p className="text-sm text-neutral-700">
+                  Paris 6e, 7e, 15e, 16e, 17e, Neuilly-sur-Seine, Boulogne-Billancourt
+                  et communes de proche couronne selon le besoin.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+                <h3 className="mb-2 text-base font-semibold text-neutral-950">
+                  Missions récurrentes
+                </h3>
+                <p className="text-sm text-neutral-700">
+                  Gestion des clés, pressing, garde d’animaux, intendance,
+                  accompagnement logistique et coordination de déplacements.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:col-span-2">
+                <h3 className="mb-2 text-base font-semibold text-neutral-950">
+                  Réponse adaptée au rythme de vie
+                </h3>
+                <p className="text-sm text-neutral-700">
+                  Intervention ponctuelle, organisation hebdomadaire ou formule
+                  plus régulière : nous aidons à choisir le bon cadre selon le
+                  niveau d’autonomie recherché, le budget et la fréquence des demandes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="services" className="max-w-5xl mx-auto px-4 py-14 md:py-18">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div className="max-w-2xl">
@@ -508,11 +584,11 @@ export default async function HomePage({ searchParams }) {
               Packs en ligne
             </p>
             <h2 className="mb-3 text-2xl font-bold text-neutral-950">
-              Des interventions concrètes, selon votre rythme.
+              Des services de conciergerie à Paris, disponibles selon votre rythme.
             </h2>
             <p className="text-sm leading-relaxed text-neutral-600">
               Retrouvez les services disponibles à la réservation en ligne,
-              avec leurs packs clairement présentés.
+              avec leurs packs et un cadre d’intervention clair sur Paris et proche couronne.
             </p>
           </div>
           <a
@@ -607,6 +683,58 @@ export default async function HomePage({ searchParams }) {
           </div>
         )}
       </section>
+
+      {featuredServiceLinks.length > 0 ? (
+        <section className="border-y border-neutral-200 bg-white">
+          <div className="max-w-5xl mx-auto px-4 py-12 md:py-14">
+            <div className="mb-6 max-w-2xl">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-800">
+                Services recherchés
+              </p>
+              <h2 className="text-2xl font-bold text-neutral-950">
+                Accès rapide aux besoins les plus demandés.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+                Ces pages concentrent les demandes les plus fréquentes pour une
+                conciergerie privée à Paris : animaux, clés, pressing,
+                déplacements et organisation du quotidien.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {featuredServiceLinks.map((service) => (
+                <a
+                  key={service.slug}
+                  href={`/services/${service.slug}`}
+                  className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm transition hover:border-amber-200 hover:shadow-md"
+                >
+                  <h3 className="mb-2 text-base font-semibold text-neutral-950">
+                    {service.title}
+                  </h3>
+                  <p className="text-sm text-neutral-700">
+                    {service.excerpt || "Découvrir le détail de cette prestation."}
+                  </p>
+                  <p className="mt-3 text-sm font-semibold text-amber-800">
+                    Voir le service
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {testimonials.length > 0 ? (
+        <section className="border-b border-neutral-200 bg-neutral-50">
+          <div className="max-w-5xl mx-auto px-4 py-12 md:py-14">
+            <TestimonialsSection
+              reviews={testimonials}
+              title="Des avis clients publiés après validation."
+              intro="Chaque témoignage affiché ici est rattaché à une commande réelle, relu avant publication et associé au service concerné."
+            />
+          </div>
+        </section>
+      ) : null}
 
       <section
         id="subscriptions"
