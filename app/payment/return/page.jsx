@@ -1,5 +1,13 @@
 import { getWooOrder } from "../../../lib/woocommerce";
 
+export const metadata = {
+  title: "Retour de paiement - Conciergerie by Isa",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 const STATUS_LABELS = {
   pending: "En attente de confirmation",
   processing: "Paiement confirmé",

@@ -2,6 +2,7 @@ import { getServiceBySlug, getServiceSlugs } from "../../../lib/wordpress";
 import Link from "next/link";
 import Image from "next/image";
 import AvailabilityPanel from "../../../components/AvailabilityPanel";
+import { getCanonicalUrl } from "../../../lib/site";
 
 function cleanHtml(str) {
   const noTags = String(str || "").replace(/<[^>]+>/g, "");
@@ -96,6 +97,14 @@ export async function generateMetadata({ params }) {
   return {
     title: `${title} - Conciergerie by Isa`,
     description: cleanHtml(service.excerpt?.rendered || ""),
+    alternates: {
+      canonical: getCanonicalUrl(`/services/${resolvedParams.slug}`),
+    },
+    openGraph: {
+      title: `${title} - Conciergerie by Isa`,
+      description: cleanHtml(service.excerpt?.rendered || ""),
+      url: getCanonicalUrl(`/services/${resolvedParams.slug}`),
+    },
   };
 }
 

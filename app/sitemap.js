@@ -1,14 +1,10 @@
 import {
+  getPostBySlug,
   getPostSlugs,
   getServiceSlugs,
   getSubscriptionSlugs,
 } from "../lib/wordpress";
-
-function getBaseUrl() {
-  const fromEnv =
-    process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "";
-  return (fromEnv || "https://conciergeriebyisa.fr").replace(/\/$/, "");
-}
+import { getBaseUrl, isPlaceholderNewsItem } from "../lib/site";
 
 export default async function sitemap() {
   const baseUrl = getBaseUrl();
@@ -17,12 +13,6 @@ export default async function sitemap() {
   const staticRoutes = [
     { url: `${baseUrl}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${baseUrl}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    {
-      url: `${baseUrl}/payment/return`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
   ];
 
   const [serviceSlugs, subscriptionSlugs, postSlugs] = await Promise.all([
@@ -45,12 +35,17 @@ export default async function sitemap() {
     priority: 0.7,
   }));
 
-  const postRoutes = (postSlugs || []).map((slug) => ({
-    url: `${baseUrl}/actualites/${slug}`,
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+  const posts = await Promise.all(
+    (postSlugs || []).map(async (slug) => getPostBySlug(slug).catch(() => null))
+  );
+  const postRoutes = posts
+    .filter((post) => post && !isPlaceholderNewsItem(post))
+    .map((post) => ({
+      url: `${baseUrl}/actualites/${post.slug}`,
+      lastModified: post.modified || now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }));
 
   return [...staticRoutes, ...serviceRoutes, ...subscriptionRoutes, ...postRoutes];
 }

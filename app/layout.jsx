@@ -4,11 +4,38 @@ import Image from "next/image";
 import ScrollToTopButton from "../components/ScrollToTopButton";
 import SiteHeader from "../components/SiteHeader";
 import GoogleAnalytics from "../components/GoogleAnalytics";
+import { getBaseUrl } from "../lib/site";
 
 export const metadata = {
-  title: "Conciergerie by Isa - Conciergerie privée à Paris",
+  metadataBase: new URL(getBaseUrl()),
+  title: {
+    default: "Conciergerie by Isa - Conciergerie privée à Paris",
+    template: "%s",
+  },
   description:
     "Conciergerie by Isa accompagne votre quotidien à Paris et en proche couronne avec des services souples, fiables et discrets.",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: "/",
+    siteName: "Conciergerie by Isa",
+    title: "Conciergerie by Isa - Conciergerie privée à Paris",
+    description:
+      "Conciergerie by Isa accompagne votre quotidien à Paris et en proche couronne avec des services souples, fiables et discrets.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Conciergerie by Isa - Conciergerie privée à Paris",
+    description:
+      "Conciergerie by Isa accompagne votre quotidien à Paris et en proche couronne avec des services souples, fiables et discrets.",
+  },
 };
 
 function InstagramIcon(props) {

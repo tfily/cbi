@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getAboutPage, getSiteInfo } from "../../lib/wordpress";
+import { getCanonicalUrl } from "../../lib/site";
 
 function cleanHtml(str) {
   const noTags = String(str || "").replace(/<[^>]+>/g, "");
@@ -37,6 +38,14 @@ export async function generateMetadata() {
   return {
     title: `${title} - Conciergerie by Isa`,
     description,
+    alternates: {
+      canonical: getCanonicalUrl("/about"),
+    },
+    openGraph: {
+      title: `${title} - Conciergerie by Isa`,
+      description,
+      url: getCanonicalUrl("/about"),
+    },
   };
 }
 

@@ -10,6 +10,13 @@ import { getVisibleProviders } from "../data/providers";
 import ContactForm from "../components/ContactForm";
 import { Suspense } from "react";
 import Image from "next/image";
+import { getCanonicalUrl, isPlaceholderNewsItem } from "../lib/site";
+
+export const metadata = {
+  alternates: {
+    canonical: getCanonicalUrl("/"),
+  },
+};
 
 function cleanHtml(str) {
   const noTags = String(str || "").replace(/<[^>]+>/g, "");
@@ -97,29 +104,6 @@ function getDefaultPackModeFromLabels(packLabels) {
   const firstPackLabel = Array.isArray(packLabels) ? packLabels[0] : "";
   const match = String(firstPackLabel || "").match(/Pack\s+(\d+)/i);
   return match ? `pack${match[1]}` : "";
-}
-
-function isPlaceholderNewsItem(item) {
-  const title = normalizeKey(cleanHtml(item?.title?.rendered || ""));
-  const excerpt = normalizeKey(cleanHtml(item?.excerpt?.rendered || ""));
-  const content = normalizeKey(cleanHtml(item?.content?.rendered || ""));
-  const text = `${title} ${excerpt} ${content}`
-    .replace(/[^\w\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!text) return true;
-  const placeholderPhrases = [
-    "hello world",
-    "bonjour tout le monde",
-    "bienvenue sur wordpress",
-    "welcome to wordpress",
-    "modifiez ou supprimez",
-    "edit or delete it",
-    "start writing",
-  ];
-  if (placeholderPhrases.some((phrase) => text.includes(phrase))) return true;
-  if (title === "hello world" || title === "bonjour tout le monde") return true;
-  return false;
 }
 
 function pickSignatureSubscriptionSlug(subscriptions) {

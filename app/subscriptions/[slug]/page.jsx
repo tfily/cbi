@@ -4,6 +4,7 @@ import {
   getSubscriptionSlugs,
 } from "../../../lib/wordpress";
 import AvailabilityPanel from "../../../components/AvailabilityPanel";
+import { getCanonicalUrl } from "../../../lib/site";
 
 function cleanHtml(str) {
   const noTags = String(str || "").replace(/<[^>]+>/g, "");
@@ -34,6 +35,14 @@ export async function generateMetadata({ params }) {
   return {
     title: `${title} - Conciergerie by Isa`,
     description: cleanHtml(sub.excerpt?.rendered || ""),
+    alternates: {
+      canonical: getCanonicalUrl(`/subscriptions/${resolvedParams.slug}`),
+    },
+    openGraph: {
+      title: `${title} - Conciergerie by Isa`,
+      description: cleanHtml(sub.excerpt?.rendered || ""),
+      url: getCanonicalUrl(`/subscriptions/${resolvedParams.slug}`),
+    },
   };
 }
 

@@ -1,22 +1,10 @@
 import Link from "next/link";
 import { getPostBySlug, getPostSlugs } from "../../../lib/wordpress";
-
-function cleanHtml(str) {
-  const noTags = String(str || "").replace(/<[^>]+>/g, "");
-  return noTags
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;|&rsquo;|&#8217;/g, "’")
-    .replace(/&ldquo;|&#8220;/g, "“")
-    .replace(/&rdquo;|&#8221;/g, "”")
-    .replace(/&eacute;/g, "é")
-    .replace(/&egrave;/g, "è")
-    .replace(/&ecirc;/g, "ê")
-    .replace(/&agrave;/g, "à")
-    .replace(/&ccedil;/g, "ç")
-    .trim();
-}
+import {
+  cleanHtml,
+  getCanonicalUrl,
+  isPlaceholderNewsItem,
+} from "../../../lib/site";
 
 export async function generateStaticParams() {
   const slugs = await getPostSlugs().catch(() => []);
@@ -27,9 +15,28 @@ export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const post = await getPostBySlug(resolvedParams.slug).catch(() => null);
   if (!post) return {};
+  const description = cleanHtml(post.excerpt?.rendered || "");
+  const isPlaceholder = isPlaceholderNewsItem(post);
   return {
     title: `${cleanHtml(post.title?.rendered || "Actualité")} - Conciergerie by Isa`,
-    description: cleanHtml(post.excerpt?.rendered || ""),
+    description,
+    alternates: {
+      canonical: getCanonicalUrl(`/actualites/${resolvedParams.slug}`),
+    },
+    robots: isPlaceholder
+      ? {
+          index: false,
+          follow: false,
+        }
+      : {
+          index: true,
+          follow: true,
+        },
+    openGraph: {
+      title: `${cleanHtml(post.title?.rendered || "Actualité")} - Conciergerie by Isa`,
+      description,
+      url: getCanonicalUrl(`/actualites/${resolvedParams.slug}`),
+    },
   };
 }
 
