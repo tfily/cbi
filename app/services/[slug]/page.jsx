@@ -2,7 +2,7 @@ import { getServiceBySlug, getServiceSlugs } from "../../../lib/wordpress";
 import Link from "next/link";
 import Image from "next/image";
 import AvailabilityPanel from "../../../components/AvailabilityPanel";
-import { getCanonicalUrl } from "../../../lib/site";
+import { getBaseUrl, getCanonicalUrl } from "../../../lib/site";
 
 function cleanHtml(str) {
   const noTags = String(str || "").replace(/<[^>]+>/g, "");
@@ -82,6 +82,52 @@ function getDefaultPackMode(packPrices) {
   return firstPack?.size ? `pack${firstPack.size}` : "";
 }
 
+function parseOfferFromPackLabel(label, serviceUrl) {
+  const normalized = String(label || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return null;
+  const amountMatch = normalized.match(/:\s*([\d.,]+)\s*€/i);
+  const amount = amountMatch ? Number(amountMatch[1].replace(",", ".")) : null;
+
+  return {
+    "@type": "Offer",
+    url: serviceUrl,
+    priceCurrency: "EUR",
+    ...(Number.isFinite(amount) ? { price: amount } : {}),
+    name: normalized,
+    availability: "https://schema.org/InStock",
+  };
+}
+
+function buildServiceSchema({ serviceTitle, serviceUrl, description, offers, heroUrl }) {
+  const baseUrl = getBaseUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${serviceUrl}#service`,
+    name: serviceTitle,
+    url: serviceUrl,
+    description,
+    image: heroUrl || undefined,
+    areaServed: [
+      {
+        "@type": "City",
+        name: "Paris",
+      },
+      {
+        "@type": "AdministrativeArea",
+        name: "Hauts-de-Seine",
+      },
+    ],
+    provider: {
+      "@type": "ProfessionalService",
+      "@id": `${baseUrl}#professional-service`,
+      name: "Conciergerie by Isa",
+      url: baseUrl,
+    },
+    offers: offers.length === 1 ? offers[0] : offers,
+  };
+}
+
 export async function generateStaticParams() {
   const slugs = await getServiceSlugs().catch(() => []);
   return slugs.map((slug) => ({ slug }));
@@ -152,12 +198,28 @@ export default async function ServicePage({ params }) {
   const contactHref = `/?service=${encodeURIComponent(resolvedParams.slug)}${
     defaultPackMode ? `&price_mode=${encodeURIComponent(defaultPackMode)}` : ""
   }#contact`;
+  const serviceUrl = getCanonicalUrl(`/services/${resolvedParams.slug}`);
   const serviceTitle = cleanHtml(service.title.rendered);
   const excerptHtml = service.excerpt?.rendered || "";
   const cleanedContentHtml = stripTariffParagraphs(contentHtml);
+  const serviceDescription = cleanHtml(excerptHtml || cleanedContentHtml);
+  const serviceOffers = derivedPackPrices
+    .map((label) => parseOfferFromPackLabel(label, serviceUrl))
+    .filter(Boolean);
+  const serviceSchema = buildServiceSchema({
+    serviceTitle,
+    serviceUrl,
+    description: serviceDescription,
+    offers: serviceOffers,
+    heroUrl,
+  });
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
       <section className="border-b border-neutral-200 bg-white">
         <div className="max-w-5xl mx-auto px-4 py-12 md:py-16">
           <p className="text-xs text-neutral-500 mb-4">

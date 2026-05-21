@@ -10,7 +10,7 @@ import { getVisibleProviders } from "../data/providers";
 import ContactForm from "../components/ContactForm";
 import { Suspense } from "react";
 import Image from "next/image";
-import { getCanonicalUrl, isPlaceholderNewsItem } from "../lib/site";
+import { getBaseUrl, getCanonicalUrl, isPlaceholderNewsItem } from "../lib/site";
 
 export const metadata = {
   alternates: {
@@ -148,6 +148,89 @@ function getSignatureOfferText(subscriptions, signatureSlug) {
   return "";
 }
 
+function buildHomeSchema({
+  siteInfo,
+  services,
+  subscriptions,
+  signatureOfferText,
+}) {
+  const baseUrl = getBaseUrl();
+  const serviceNames = (services || [])
+    .map((service) => cleanHtml(service?.title?.rendered || ""))
+    .filter(Boolean);
+  const subscriptionNames = (subscriptions || [])
+    .map((subscription) => cleanHtml(subscription?.title?.rendered || ""))
+    .filter(Boolean);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": `${baseUrl}#professional-service`,
+    name: siteInfo?.name || "Conciergerie by Isa",
+    url: baseUrl,
+    description:
+      siteInfo?.description ||
+      "Conciergerie privée à Paris pour simplifier le quotidien, organiser les déplacements, l intendance et les besoins récurrents.",
+    areaServed: [
+      {
+        "@type": "City",
+        name: "Paris",
+      },
+      {
+        "@type": "AdministrativeArea",
+        name: "Hauts-de-Seine",
+      },
+    ],
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Paris",
+      addressCountry: "FR",
+    },
+    sameAs: [
+      "https://www.instagram.com/conciergeriebyisa?igsh=aml3dGVicjEzZXBr",
+      "https://www.linkedin.com/in/isabelle-haquin-conciergerie-by-isa-009106385?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+    ],
+    knowsAbout: [...serviceNames, ...subscriptionNames],
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Services et formules Conciergerie by Isa",
+      itemListElement: [
+        ...(serviceNames.length
+          ? [
+              {
+                "@type": "OfferCatalog",
+                name: "Services en ligne",
+                itemListElement: serviceNames.map((name) => ({
+                  "@type": "ListItem",
+                  item: {
+                    "@type": "Service",
+                    name,
+                  },
+                })),
+              },
+            ]
+          : []),
+        ...(subscriptionNames.length
+          ? [
+              {
+                "@type": "OfferCatalog",
+                name: "Abonnements",
+                itemListElement: subscriptionNames.map((name) => ({
+                  "@type": "ListItem",
+                  item: {
+                    "@type": "Service",
+                    name,
+                  },
+                })),
+              },
+            ]
+          : []),
+      ],
+    },
+    slogan: signatureOfferText || undefined,
+  };
+}
+
 export default async function HomePage({ searchParams }) {
   const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
   const resolvedSearchParams = (await searchParams) || {};
@@ -213,9 +296,19 @@ export default async function HomePage({ searchParams }) {
   const signatureOfferText =
     getSignatureOfferText(subscriptions, signatureSubscriptionSlug) ||
     "Courses, déplacements, animaux, réservations : tout est pris en charge avec discrétion et efficacité.";
+  const homeSchema = buildHomeSchema({
+    siteInfo,
+    services,
+    subscriptions,
+    signatureOfferText,
+  });
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeSchema) }}
+      />
       <section className="relative overflow-hidden border-b border-neutral-200">
         <div
           className="absolute inset-0 z-0 bg-no-repeat bg-center bg-contain"
