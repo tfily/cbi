@@ -13,6 +13,7 @@ export default async function sitemap() {
   const staticRoutes = [
     { url: `${baseUrl}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${baseUrl}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/carte`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
   ];
 
   const [serviceSlugs, subscriptionSlugs, postSlugs] = await Promise.all([
