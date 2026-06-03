@@ -349,28 +349,6 @@ export default function BusinessCardPage() {
                   ))}
                 </div>
               </div>
-
-              <div className="rounded-[2rem] border border-[#e4d2b2] bg-white/92 p-5 shadow-[0_18px_45px_rgba(55,40,17,0.08)]">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8d6b43]">
-                    QR code
-                  </p>
-                  <h2 className="mt-2 text-lg font-semibold text-neutral-950">
-                    Partager la carte
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                    Scannez ce QR code pour ouvrir directement la carte
-                    numerique sur mobile ou l’integrer a votre version imprimee.
-                  </p>
-                </div>
-                <div className="mt-5 rounded-[1.5rem] border border-[#ecdfc9] bg-[#fffdf7] p-4">
-                  <img
-                    src={qrCodeUrl}
-                    alt="QR code vers la carte numerique Conciergerie by Isa"
-                    className="mx-auto h-52 w-52 rounded-2xl border border-[#ead9bb] bg-white p-3"
-                  />
-                </div>
-              </div>
             </aside>
           </div>
         </div>
