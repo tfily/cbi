@@ -14,3 +14,21 @@ body {
 .prose {
   max-width: 100%;
 }
+
+@media print {
+  .cbi-card-hide-print {
+    display: none !important;
+  }
+
+  .cbi-card-print-only {
+    display: block !important;
+  }
+
+  .cbi-business-card-page {
+    background: #fff !important;
+  }
+
+  .cbi-business-card-page section {
+    break-inside: avoid;
+  }
+}
