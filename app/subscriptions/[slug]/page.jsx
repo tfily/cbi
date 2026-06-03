@@ -63,9 +63,7 @@ export default async function SubscriptionPage({ params }) {
   }
 
   const title = cleanHtml(sub.title?.rendered || "Formule");
-  const price = sub.meta?.cbi_price || "Sur devis";
   const frequency = sub.meta?.cbi_frequency || "Formule";
-  const unit = sub.meta?.cbi_unit ? ` / ${sub.meta.cbi_unit}` : "";
   const excerptHtml = sub.excerpt?.rendered || "";
   const contentHtml = sub.content?.rendered || "";
 
@@ -90,10 +88,6 @@ export default async function SubscriptionPage({ params }) {
               </h1>
               <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
                 {frequency}
-              </p>
-              <p className="mb-5 text-3xl font-bold text-amber-800">
-                {price}
-                <span className="text-sm font-medium text-neutral-500">{unit}</span>
               </p>
 
               {excerptHtml ? (

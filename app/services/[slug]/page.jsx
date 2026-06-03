@@ -89,23 +89,7 @@ function getDefaultPackMode(packPrices) {
   return firstPack?.size ? `pack${firstPack.size}` : "";
 }
 
-function parseOfferFromPackLabel(label, serviceUrl) {
-  const normalized = String(label || "").replace(/\s+/g, " ").trim();
-  if (!normalized) return null;
-  const amountMatch = normalized.match(/:\s*([\d.,]+)\s*€/i);
-  const amount = amountMatch ? Number(amountMatch[1].replace(",", ".")) : null;
-
-  return {
-    "@type": "Offer",
-    url: serviceUrl,
-    priceCurrency: "EUR",
-    ...(Number.isFinite(amount) ? { price: amount } : {}),
-    name: normalized,
-    availability: "https://schema.org/InStock",
-  };
-}
-
-function buildServiceSchema({ serviceTitle, serviceUrl, description, offers, heroUrl }) {
+function buildServiceSchema({ serviceTitle, serviceUrl, description, heroUrl }) {
   const baseUrl = getBaseUrl();
   return {
     "@context": "https://schema.org",
@@ -131,7 +115,6 @@ function buildServiceSchema({ serviceTitle, serviceUrl, description, offers, her
       name: "Conciergerie by Isa",
       url: baseUrl,
     },
-    offers: offers.length === 1 ? offers[0] : offers,
   };
 }
 
@@ -217,9 +200,6 @@ export default async function ServicePage({ params }) {
   const excerptHtml = service.excerpt?.rendered || "";
   const cleanedContentHtml = stripTariffParagraphs(contentHtml);
   const serviceDescription = cleanHtml(excerptHtml || cleanedContentHtml);
-  const serviceOffers = derivedPackPrices
-    .map((label) => parseOfferFromPackLabel(label, serviceUrl))
-    .filter(Boolean);
   const relatedServices = (services || [])
     .filter((item) => item?.slug && item.slug !== resolvedParams.slug)
     .slice(0, 3)
@@ -233,14 +213,12 @@ export default async function ServicePage({ params }) {
     .map((item) => ({
       slug: item.slug,
       title: cleanHtml(item?.title?.rendered || ""),
-      price: item?.meta?.cbi_price || "",
     }))
     .filter((item) => item.slug && item.title);
   const serviceSchema = buildServiceSchema({
     serviceTitle,
     serviceUrl,
     description: serviceDescription,
-    offers: serviceOffers,
     heroUrl,
   });
   const localServiceLead = `Ce service de conciergerie à Paris et en proche couronne convient aux besoins ponctuels comme aux organisations récurrentes, avec un cadre simple et un suivi discret.`;
@@ -268,12 +246,6 @@ export default async function ServicePage({ params }) {
               <h1 className="mb-3 text-3xl font-bold text-neutral-950 md:text-5xl">
                 {serviceTitle}
               </h1>
-
-              {derivedPackPrices.length > 0 ? (
-                <p className="mb-5 text-sm font-semibold text-neutral-600">
-                  {derivedPackPrices.join(" · ")}
-                </p>
-              ) : null}
 
               {excerptHtml ? (
                 <div
@@ -353,23 +325,6 @@ export default async function ServicePage({ params }) {
             <h2 className="mb-5 text-2xl font-semibold text-neutral-950">
               Détails de la prestation
             </h2>
-            {derivedPackPrices.length > 0 ? (
-              <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-800">
-                  Packs disponibles
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {derivedPackPrices.map((label) => (
-                    <span
-                      key={label}
-                      className="inline-flex rounded-full border border-amber-300 bg-white px-3 py-1 text-sm font-medium text-neutral-800"
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
             <p className="mb-6 text-sm leading-relaxed text-neutral-600">
               {localServiceLead}
             </p>
@@ -446,7 +401,6 @@ export default async function ServicePage({ params }) {
                       className="rounded-2xl border border-amber-300 bg-white px-4 py-3 text-sm font-medium text-neutral-800 transition hover:border-amber-400 hover:text-amber-800"
                     >
                       {item.title}
-                      {item.price ? ` • ${item.price}` : ""}
                     </a>
                   ))}
                 </div>

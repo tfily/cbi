@@ -43,22 +43,6 @@ function normalizeKey(value) {
     .trim();
 }
 
-function formatEuroLabel(value) {
-  if (value == null || value === "") return "";
-  const raw = String(value).trim();
-  if (!raw) return "";
-  if (raw.includes("€")) return raw;
-  if (/eur/i.test(raw)) return raw.replace(/eur/gi, "€");
-  const numeric = Number(raw.replace(",", "."));
-  if (!Number.isNaN(numeric)) {
-    const fixed = Number.isInteger(numeric)
-      ? String(numeric)
-      : numeric.toFixed(2).replace(/\.00$/, "").replace(".", ",");
-    return `${fixed}€`;
-  }
-  return `${raw}€`;
-}
-
 async function parseJsonSafe(response) {
   const text = await response.text();
   if (!text) return {};
@@ -292,11 +276,8 @@ function ServiceFields({
   serviceChoice,
   setServiceChoice,
   selectedService,
-  selectedServicePricing,
-  selectedServiceHeadlinePrice,
   servicePricingMode,
   setServicePricingMode,
-  formTheme,
 }) {
   return (
     <div className="grid md:grid-cols-2 gap-4">
@@ -328,13 +309,6 @@ function ServiceFields({
               {options.map((option) => (
                 <option key={option.slug} value={option.slug}>
                   {option.label}
-                  {option.priceKind === "fee" && option.priceLabel
-                    ? ` - Frais de service ${formatEuroLabel(option.priceLabel)}`
-                    : option.bookingFeeMinor
-                        ? ` - Frais de service ${formatEuroLabel(
-                            (option.bookingFeeMinor / 100).toFixed(2)
-                          )}`
-                        : ""}
                 </option>
               ))}
             </select>
@@ -343,20 +317,9 @@ function ServiceFields({
                 Ce service est traité sur devis. Utilisez le contact ci-dessous.
               </p>
             ) : null}
-            {selectedServicePricing?.bookingFeeMinor ? (
-              <p className={`mt-2 text-xs ${formTheme.accentSoftTextClassName}`}>
-                Frais de réservation transport inclus :{" "}
-                {(selectedServicePricing.bookingFeeMinor / 100).toFixed(2)} €
-              </p>
-            ) : null}
-            {selectedServiceHeadlinePrice ? (
-              <p className={`mt-2 text-xs ${formTheme.accentSoftTextClassName}`}>
-                {selectedServiceHeadlinePrice}
-              </p>
-            ) : null}
             {selectedService?.packOptions?.length ? (
               <div className="mt-3">
-                <label className="block text-xs font-medium mb-1">Tarification</label>
+                <label className="block text-xs font-medium mb-1">Format</label>
                 <select
                   name="service_pricing"
                   value={servicePricingMode}
@@ -366,7 +329,6 @@ function ServiceFields({
                   {selectedService.packOptions.map((pack) => (
                     <option key={pack.mode} value={pack.mode}>
                       {pack.label}
-                      {pack.priceLabel ? ` - ${pack.priceLabel}` : ""}
                     </option>
                   ))}
                 </select>
@@ -468,11 +430,6 @@ function SubscriptionFields({
   subscriptionOptions,
   subscriptionChoice,
   setSubscriptionChoice,
-  selectedSubscriptionOption,
-  handlePaySubscription,
-  paymentsEnabled,
-  isPaying,
-  formTheme,
 }) {
   if (!subscriptionOptions.length) return null;
 
@@ -491,24 +448,9 @@ function SubscriptionFields({
         {subscriptionOptions.map((sub) => (
           <option key={sub.slug} value={sub.slug}>
             {sub.label}
-            {sub.priceLabel ? ` – ${sub.priceLabel}` : ""}
           </option>
         ))}
       </select>
-      {selectedSubscriptionOption ? (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={handlePaySubscription}
-            disabled={
-              !paymentsEnabled || isPaying || !selectedSubscriptionOption.priceMinor
-            }
-            className={`inline-flex items-center px-4 py-2 rounded-full border text-xs font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
-          >
-            {isPaying ? "Redirection..." : "Payer l’abonnement"}
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -540,10 +482,6 @@ function FormActions({
   formMode,
   formTheme,
   isSubmitting,
-  isPaying,
-  handlePayNow,
-  paymentsEnabled,
-  selectedServicePricing,
   selectedService,
 }) {
   return (
@@ -568,21 +506,6 @@ function FormActions({
                   ? "Envoyer le sur-mesure"
                   : "Envoyer"}
         </button>
-        {formMode === "service" ? (
-          <button
-            type="button"
-            onClick={handlePayNow}
-            disabled={
-              !paymentsEnabled ||
-              isPaying ||
-              !selectedServicePricing?.amountMinor ||
-              selectedService?.invoiceOnly
-            }
-            className={`inline-flex items-center whitespace-nowrap px-5 py-2.5 rounded-full border text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${formTheme.payButtonClassName}`}
-          >
-            {isPaying ? "Redirection..." : "Payer maintenant"}
-          </button>
-        ) : null}
         {selectedService?.invoiceOnly ? (
           <a
             href={selectedService.contactUrl || "#contact"}
@@ -598,7 +521,6 @@ function FormActions({
 
 export default function ContactForm({ services = [], subscriptions = [] }) {
   const searchParams = useSearchParams();
-  const paymentsEnabled = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED !== "false";
   const selectedSlug = searchParams.get("service") || "";
   const selectedSubscription = searchParams.get("subscription") || "";
   const customRequestParam = searchParams.get("custom_request");
@@ -617,8 +539,6 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   );
   const [scheduledDate, setScheduledDate] = useState(selectedDate);
   const [timeSlot, setTimeSlot] = useState(selectedTimeSlot);
-  const [isPaying, setIsPaying] = useState(false);
-  const [payError, setPayError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState("");
   const [availableSlots, setAvailableSlots] = useState([]);
@@ -815,31 +735,12 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
       bookingFeeMinor,
     };
   }, [selectedService, servicePricingMode]);
-
-  const selectedServiceHeadlinePrice = useMemo(() => {
-    if (!selectedService) return "";
-    if (selectedService.priceKind === "fee" && selectedService.priceLabel) {
-      return `Frais de service ${formatEuroLabel(selectedService.priceLabel)}`;
-    }
-    if (selectedService.bookingFeeMinor) {
-      return `Frais de service ${formatEuroLabel(
-        (selectedService.bookingFeeMinor / 100).toFixed(2)
-      )}`;
-    }
-    return "";
-  }, [selectedService]);
   const modeSummary = useMemo(() => {
     if (formMode === "subscription" && selectedSubscriptionOption) {
-      return `Formule sélectionnée : ${selectedSubscriptionOption.label}${
-        selectedSubscriptionOption.priceLabel
-          ? ` • ${selectedSubscriptionOption.priceLabel}`
-          : ""
-      }`;
+      return `Formule sélectionnée : ${selectedSubscriptionOption.label}`;
     }
     if (formMode === "service" && selectedService) {
-      return `Service sélectionné : ${selectedService.label}${
-        selectedServiceHeadlinePrice ? ` • ${selectedServiceHeadlinePrice}` : ""
-      }`;
+      return `Service sélectionné : ${selectedService.label}`;
     }
     if (formMode === "custom") {
       return "Vous êtes en mode sur-mesure : détaillez le besoin, le contexte et les contraintes.";
@@ -848,7 +749,6 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
   }, [
     formMode,
     selectedService,
-    selectedServiceHeadlinePrice,
     selectedSubscriptionOption,
   ]);
 
@@ -936,157 +836,9 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
     };
   }
 
-  async function handlePayNow() {
-    setPayError("");
-    const payable = selectedService;
-    if (!selectedServicePricing?.amountMinor) {
-      setPayError(
-        "Ce service n’a pas de tarif configuré dans WordPress. Merci de nous contacter."
-      );
-      return;
-    }
-
-    const booking = getBookingFromForm();
-    if (!booking) return;
-
-    if (!booking.email) {
-      setPayError("Merci de renseigner votre email avant de payer.");
-      return;
-    }
-    if (!booking.scheduledDate) {
-      setPayError("Merci de choisir une date d’intervention avant de payer.");
-      return;
-    }
-    if (isWeekendDate(booking.scheduledDate)) {
-      setPayError("Les interventions ne sont pas disponibles le week-end.");
-      return;
-    }
-    if (availableSlots.length > 0 && !booking.timeSlot) {
-      setPayError("Merci de choisir un créneau disponible avant de payer.");
-      return;
-    }
-
-    const [firstName, ...rest] = booking.name.split(" ").filter(Boolean);
-    const lastName = rest.join(" ");
-
-    setIsPaying(true);
-    try {
-      const res = await fetch("/api/checkout/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          serviceName: payable.label,
-          serviceSlug: payable.slug,
-          itemType: "service",
-          amountMinor: selectedServicePricing.amountMinor,
-          pricingOption: selectedServicePricing.mode,
-          pricingLabel: selectedServicePricing.label || "",
-          currency: "EUR",
-          customerEmail: booking.email,
-          customerFirstName: firstName || "",
-          customerLastName: lastName || "",
-          customerPhone: booking.phone || "",
-          scheduledDate: booking.scheduledDate,
-          timeSlot: booking.timeSlot || "",
-        }),
-      });
-
-      const payload = await parseJsonSafe(res);
-      if (!res.ok) {
-        throw new Error(
-          buildApiErrorMessage(res, payload, "Paiement indisponible.")
-        );
-      }
-
-      if (payload?.redirectUrl) {
-        window.location.href = payload.redirectUrl;
-      } else {
-        throw new Error("Redirection de paiement indisponible.");
-      }
-    } catch (error) {
-      setPayError(error?.message || "Une erreur est survenue.");
-    } finally {
-      setIsPaying(false);
-    }
-  }
-
-  async function handlePaySubscription() {
-    setPayError("");
-    const payable = selectedSubscriptionOption;
-    if (!payable?.priceMinor) {
-      setPayError(
-        "Cette formule n’a pas de tarif configuré dans WordPress. Merci de nous contacter."
-      );
-      return;
-    }
-
-    const booking = getBookingFromForm();
-    if (!booking) return;
-
-    if (!booking.email) {
-      setPayError("Merci de renseigner votre email avant de payer.");
-      return;
-    }
-    if (!booking.scheduledDate) {
-      setPayError("Merci de choisir une date d’intervention avant de payer.");
-      return;
-    }
-    if (isWeekendDate(booking.scheduledDate)) {
-      setPayError("Les interventions ne sont pas disponibles le week-end.");
-      return;
-    }
-    if (availableSlots.length > 0 && !booking.timeSlot) {
-      setPayError("Merci de choisir un créneau disponible avant de payer.");
-      return;
-    }
-
-    const [firstName, ...rest] = booking.name.split(" ").filter(Boolean);
-    const lastName = rest.join(" ");
-
-    setIsPaying(true);
-    try {
-      const res = await fetch("/api/checkout/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          serviceName: payable.label,
-          serviceSlug: payable.slug,
-          subscriptionSlug: payable.slug,
-          itemType: "subscription",
-          amountMinor: payable.priceMinor,
-          currency: "EUR",
-          customerEmail: booking.email,
-          customerFirstName: firstName || "",
-          customerLastName: lastName || "",
-          customerPhone: booking.phone || "",
-          scheduledDate: booking.scheduledDate,
-          timeSlot: booking.timeSlot || "",
-        }),
-      });
-
-      const payload = await parseJsonSafe(res);
-      if (!res.ok) {
-        throw new Error(
-          buildApiErrorMessage(res, payload, "Paiement indisponible.")
-        );
-      }
-
-      if (payload?.redirectUrl) {
-        window.location.href = payload.redirectUrl;
-      } else {
-        throw new Error("Redirection de paiement indisponible.");
-      }
-    } catch (error) {
-      setPayError(error?.message || "Une erreur est survenue.");
-    } finally {
-      setIsPaying(false);
-    }
-  }
-
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitStatus("");
-    setPayError("");
 
     const booking = getBookingFromForm();
     if (!booking) return;
@@ -1170,11 +922,8 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         serviceChoice={serviceChoice}
         setServiceChoice={setServiceChoice}
         selectedService={selectedService}
-        selectedServicePricing={selectedServicePricing}
-        selectedServiceHeadlinePrice={selectedServiceHeadlinePrice}
         servicePricingMode={servicePricingMode}
         setServicePricingMode={setServicePricingMode}
-        formTheme={formTheme}
       />
       <CustomRequestFields
         fieldClassName={fieldClassName}
@@ -1185,28 +934,16 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
         subscriptionOptions={subscriptionOptions}
         subscriptionChoice={subscriptionChoice}
         setSubscriptionChoice={setSubscriptionChoice}
-        selectedSubscriptionOption={selectedSubscriptionOption}
-        handlePaySubscription={handlePaySubscription}
-        paymentsEnabled={paymentsEnabled}
-        isPaying={isPaying}
-        formTheme={formTheme}
       />
       <MessageField fieldClassName={fieldClassName} formMode={formMode} />
       <FormActions
         formMode={formMode}
         formTheme={formTheme}
         isSubmitting={isSubmitting}
-        isPaying={isPaying}
-        handlePayNow={handlePayNow}
-        paymentsEnabled={paymentsEnabled}
-        selectedServicePricing={selectedServicePricing}
         selectedService={selectedService}
       />
       {submitStatus ? (
         <p className="text-xs text-neutral-200">{submitStatus}</p>
-      ) : null}
-      {payError ? (
-        <p className="text-xs text-amber-200">{payError}</p>
       ) : null}
     </form>
   );

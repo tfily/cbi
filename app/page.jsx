@@ -39,44 +39,12 @@ function cleanHtml(str) {
     .replace(/&ccedil;/g, "ç");
 }
 
-function formatEuroLabel(value) {
-  if (value == null || value === "") return "";
-  const raw = String(value).trim();
-  if (!raw) return "";
-  if (raw.includes("€")) return raw;
-  if (/eur/i.test(raw)) return raw.replace(/eur/gi, "€");
-  const normalized = raw.replace(",", ".");
-  const numeric = Number(normalized);
-  if (!Number.isNaN(numeric)) {
-    const fixed = Number.isInteger(numeric)
-      ? String(numeric)
-      : numeric.toFixed(2).replace(/\.00$/, "").replace(".", ",");
-    return `${fixed}€`;
-  }
-  return `${raw}€`;
-}
-
 function normalizeKey(value) {
   return String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
-}
-
-function getServicePriceDisplay(service) {
-  const title = cleanHtml(service?.title?.rendered || "");
-  const normalizedTitle = normalizeKey(title);
-  const unitPrice = service?.meta?.cbi_price || service?.meta?.price || "";
-  const feePrice =
-    service?.meta?.cbi_service_fee ||
-    service?.meta?.cbi_booking_fee ||
-    (normalizedTitle === "reservation de transports" ? "5" : "");
-  const type = String(service?.meta?.cbi_price_kind || "").toLowerCase();
-  if ((type === "fee" || !unitPrice) && feePrice) {
-    return `Frais de service : ${formatEuroLabel(feePrice)}`;
-  }
-  return "";
 }
 
 function getPackPrices(meta) {
@@ -612,7 +580,6 @@ export default async function HomePage({ searchParams }) {
     service._embedded["wp:featuredmedia"][0];
   const imgUrl =
     media?.media_details?.sizes?.medium?.source_url || media?.source_url || null;
-  const priceLabel = getServicePriceDisplay(service);
   const packPriceLabels = getPackPrices(service.meta);
   const defaultPackMode = getDefaultPackModeFromLabels(packPriceLabels);
   const contactHref = `/?service=${encodeURIComponent(service.slug)}${
@@ -641,14 +608,6 @@ export default async function HomePage({ searchParams }) {
         <h3 className="mb-2 text-lg font-semibold text-neutral-950 group-hover:text-amber-800">
           {cleanHtml(service.title.rendered)}
         </h3>
-        {!packPriceLabels.length && priceLabel ? (
-          <p className="text-sm font-semibold text-amber-800 mb-1">{priceLabel}</p>
-        ) : null}
-        {packPriceLabels.length > 0 ? (
-          <p className="mb-2 text-xs font-semibold text-neutral-500">
-            {packPriceLabels.join(" · ")}
-          </p>
-        ) : null}
         <div
           className="prose prose-sm mb-2 max-w-none text-sm text-neutral-700"
           dangerouslySetInnerHTML={{
@@ -790,12 +749,6 @@ export default async function HomePage({ searchParams }) {
                       <h3 className="text-lg font-semibold text-neutral-900 mb-2">
                         {cleanHtml(sub.title.rendered)}
                       </h3>
-                      <p className="text-3xl font-bold text-amber-800 mb-4">
-                        {sub.meta?.cbi_price || "Sur devis"}
-                        <span className="text-sm font-medium text-neutral-500">
-                          {sub.meta?.cbi_unit ? ` / ${sub.meta.cbi_unit}` : ""}
-                        </span>
-                      </p>
                       {sub.excerpt?.rendered ? (
                         <div
                           className="text-xs text-neutral-600 mb-4 space-y-2 prose prose-xs max-w-none"
