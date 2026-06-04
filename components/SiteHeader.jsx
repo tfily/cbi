@@ -21,7 +21,7 @@ export default function SiteHeader({ showNavigation = true }) {
   const whatsappIsConfigured = Boolean(whatsappNumber);
 
   return (
-    <header className="border-b border-neutral-200 bg-white/90 backdrop-blur">
+    <header className="border-b border-[rgba(36,31,26,0.12)] bg-[rgba(250,247,241,0.94)] backdrop-blur">
       <div className="max-w-5xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
@@ -37,7 +37,7 @@ export default function SiteHeader({ showNavigation = true }) {
           {showNavigation ? (
             <button
               type="button"
-              className="sm:hidden inline-flex items-center rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-700"
+              className="sm:hidden inline-flex items-center rounded-full border border-[rgba(31,27,23,0.18)] px-3 py-1.5 text-xs font-semibold text-[var(--cbi-text-main)]"
               onClick={() => setOpen((prev) => !prev)}
               aria-expanded={open}
               aria-label="Menu"
@@ -49,7 +49,11 @@ export default function SiteHeader({ showNavigation = true }) {
           {showNavigation ? (
             <nav className="hidden sm:flex text-sm gap-4">
               {NAV_ITEMS.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-amber-800">
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-[var(--cbi-text-muted)] transition hover:text-[var(--cbi-text-main)]"
+                >
                   {item.label}
                 </Link>
               ))}
@@ -62,13 +66,13 @@ export default function SiteHeader({ showNavigation = true }) {
                 href={whatsappHref}
                 target={whatsappIsConfigured ? "_blank" : undefined}
                 rel={whatsappIsConfigured ? "noopener noreferrer" : undefined}
-                className="inline-flex items-center px-3 py-1.5 rounded-full border border-emerald-700 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
+                className="cbi-cta-secondary px-3 py-1.5 text-xs"
               >
                 Nous joindre
               </a>
               <Link
                 href="/#contact"
-                className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-700 text-xs font-semibold text-white hover:bg-amber-800"
+                className="cbi-cta-primary px-3 py-1.5 text-xs"
               >
                 Parler de votre besoin
               </Link>
@@ -77,12 +81,12 @@ export default function SiteHeader({ showNavigation = true }) {
         </div>
 
         {showNavigation && open ? (
-          <div className="sm:hidden mt-3 space-y-2 rounded-xl border border-neutral-200 bg-white p-3">
+          <div className="sm:hidden mt-3 space-y-2 rounded-2xl border border-[rgba(36,31,26,0.12)] bg-[var(--cbi-bg-warm)] p-3 shadow-[0_16px_36px_rgba(31,27,23,0.08)]">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="block rounded-lg px-2 py-2 text-sm text-neutral-800 hover:bg-neutral-100"
+                className="block rounded-lg px-2 py-2 text-sm text-[var(--cbi-text-main)] transition hover:bg-[rgba(36,31,26,0.05)]"
                 onClick={() => setOpen(false)}
               >
                 {item.label}
@@ -90,7 +94,7 @@ export default function SiteHeader({ showNavigation = true }) {
             ))}
             <Link
               href="/#contact"
-              className="mt-1 inline-flex items-center px-3 py-1.5 rounded-full bg-amber-700 text-xs font-semibold text-white hover:bg-amber-800"
+              className="cbi-cta-primary mt-1 px-3 py-1.5 text-xs"
               onClick={() => setOpen(false)}
             >
               Parler de votre besoin
@@ -99,7 +103,7 @@ export default function SiteHeader({ showNavigation = true }) {
               href={whatsappHref}
               target={whatsappIsConfigured ? "_blank" : undefined}
               rel={whatsappIsConfigured ? "noopener noreferrer" : undefined}
-              className="mt-1 inline-flex items-center px-3 py-1.5 rounded-full border border-emerald-700 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
+              className="cbi-cta-secondary mt-1 px-3 py-1.5 text-xs"
               onClick={() => setOpen(false)}
             >
               Nous joindre
