@@ -302,7 +302,7 @@ export default async function HomePage({ searchParams }) {
         <div className="relative max-w-5xl mx-auto px-4 py-12 md:py-20">
           <div className="grid gap-8 md:grid-cols-[0.78fr_1.22fr] md:items-center">
             <div className="relative p-1 md:p-0">
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <p className="cbi-kicker">Conciergerie privée à Paris</p>
                 <h1 className="cbi-title max-w-xl text-3xl font-bold leading-tight md:text-5xl">
                   Un quotidien plus simple, géré avec discrétion et précision.
@@ -320,7 +320,7 @@ export default async function HomePage({ searchParams }) {
                   </a>
                 </div>
 
-                <div className="grid gap-3 pt-2 sm:grid-cols-3">
+                <div className="grid gap-3 pt-1 sm:grid-cols-3">
                   <div className="border border-[rgba(36,31,26,0.1)] bg-[rgba(255,253,248,0.72)] p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--cbi-text-muted)]">
                       Zone
@@ -383,7 +383,7 @@ export default async function HomePage({ searchParams }) {
           <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="cbi-card p-6 md:p-7">
               <p className="cbi-kicker mb-3">Offre signature</p>
-              <h2 className="cbi-title mb-3 text-2xl font-bold md:text-3xl">
+              <h2 className="cbi-title mb-3 max-w-md text-2xl font-bold md:text-3xl">
                 Un quotidien mieux orchestré
               </h2>
               <p className="mb-4 text-sm italic text-[var(--cbi-text-muted)] md:text-base">
@@ -438,7 +438,7 @@ export default async function HomePage({ searchParams }) {
       <section className="border-b border-[rgba(36,31,26,0.12)] bg-[var(--cbi-bg-warm)]">
         <div className="max-w-5xl mx-auto px-4 py-12 md:py-14">
           <div className="grid gap-6 md:grid-cols-[0.9fr_1.1fr] md:items-start">
-            <div className="space-y-4">
+            <div className="cbi-section-intro space-y-4">
               <p className="cbi-kicker">
                 Pourquoi choisir Isa
               </p>
@@ -514,7 +514,7 @@ export default async function HomePage({ searchParams }) {
       <section className="border-b border-[rgba(36,31,26,0.12)] bg-[var(--cbi-bg-main)]">
         <div className="max-w-5xl mx-auto px-4 py-12 md:py-14">
           <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-start">
-            <div className="space-y-4">
+            <div className="cbi-section-intro space-y-4">
               <p className="cbi-kicker">
                 Conciergerie à Paris
               </p>
@@ -571,7 +571,7 @@ export default async function HomePage({ searchParams }) {
       <section id="services" className="border-b border-[rgba(36,31,26,0.12)] bg-[var(--cbi-bg-soft)]">
         <div className="max-w-5xl mx-auto px-4 py-14 md:py-18">
           <div className="mb-8 flex items-end justify-between gap-4">
-            <div className="max-w-2xl">
+            <div className="cbi-section-intro">
               <p className="cbi-kicker mb-2">
                 Packs en ligne
               </p>
@@ -630,28 +630,28 @@ export default async function HomePage({ searchParams }) {
           {cleanHtml(service.title.rendered)}
         </h3>
         <div
-          className="prose prose-sm mb-2 max-w-none text-sm text-[var(--cbi-text-muted)]"
+          className="prose prose-sm mb-2 max-w-none text-sm leading-relaxed text-[var(--cbi-text-muted)]"
           dangerouslySetInnerHTML={{
             __html: service.excerpt?.rendered || service.content.rendered,
           }}
         />
       </a>
-      <div className="mt-5 flex flex-wrap gap-4">
+      <div className="mt-5 flex flex-wrap gap-4 border-t border-[rgba(36,31,26,0.08)] pt-4">
         <a
           href={`/services/${service.slug}`}
-          className="inline-flex text-sm font-semibold text-[#7f6740] hover:underline"
+          className="cbi-inline-link inline-flex text-sm hover:underline"
         >
           Voir le détail
         </a>
         <a
           href={`/services/${service.slug}#availability`}
-          className="inline-flex text-sm font-semibold text-[var(--cbi-text-muted)] hover:underline"
+          className="inline-flex text-sm font-semibold text-[var(--cbi-text-muted)] transition hover:text-[var(--cbi-text-main)] hover:underline"
         >
           Voir disponibilités
         </a>
         <a
           href={contactHref}
-          className="inline-flex text-sm font-semibold text-[var(--cbi-text-muted)] hover:underline"
+          className="inline-flex text-sm font-semibold text-[var(--cbi-text-muted)] transition hover:text-[var(--cbi-text-main)] hover:underline"
         >
           Demander ce service
         </a>
@@ -668,7 +668,7 @@ export default async function HomePage({ searchParams }) {
       {featuredServiceLinks.length > 0 ? (
         <section className="border-y border-[rgba(36,31,26,0.12)] bg-[var(--cbi-bg-warm)]">
           <div className="max-w-5xl mx-auto px-4 py-12 md:py-14">
-            <div className="mb-6 max-w-2xl">
+            <div className="cbi-section-intro mb-6">
               <p className="cbi-kicker mb-2">
                 Services recherchés
               </p>
@@ -723,7 +723,7 @@ export default async function HomePage({ searchParams }) {
       >
         <div className="max-w-5xl mx-auto px-4">
           <div className="mb-8 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-            <div className="max-w-2xl">
+            <div className="cbi-section-intro">
               <p className="cbi-kicker mb-2">
                 Formules d’abonnement
               </p>
@@ -781,7 +781,7 @@ export default async function HomePage({ searchParams }) {
                       ) : null}
                     </div>
                     {sub.slug && (
-                      <div className="mt-4 flex flex-col gap-2">
+                      <div className="mt-5 flex flex-col gap-2 border-t border-[rgba(36,31,26,0.08)] pt-4">
                         <a
                           href={`/subscriptions/${sub.slug}`}
                           className="cbi-cta-secondary"
@@ -811,7 +811,7 @@ export default async function HomePage({ searchParams }) {
       {visibleNews.length > 0 ? (
         <section id="news" className="border-b border-[rgba(36,31,26,0.12)] bg-[var(--cbi-bg-warm)]">
           <div className="max-w-5xl mx-auto px-4 py-12 md:py-16">
-            <div className="mb-6 flex items-baseline justify-between">
+            <div className="mb-6 flex items-baseline justify-between gap-4">
               <h2 className="cbi-title text-2xl font-bold">Actualités et offres</h2>
               <span className="text-xs text-[var(--cbi-text-muted)]">
                 Dernières nouvelles depuis notre conciergerie
@@ -831,7 +831,7 @@ export default async function HomePage({ searchParams }) {
                   {item.slug ? (
                     <a
                       href={`/actualites/${item.slug}`}
-                      className="hover:text-amber-800"
+                      className="transition hover:text-[#7f6740]"
                     >
                       {cleanHtml(item.title.rendered)}
                     </a>
@@ -847,7 +847,7 @@ export default async function HomePage({ searchParams }) {
                   <div className="mt-3">
                     <a
                       href={`/actualites/${item.slug}`}
-                      className="inline-flex text-sm font-semibold text-[#7f6740] hover:underline"
+                      className="cbi-inline-link inline-flex text-sm hover:underline"
                     >
                       Lire l’article
                     </a>
@@ -864,7 +864,7 @@ export default async function HomePage({ searchParams }) {
         <section className="bg-[var(--cbi-bg-main)]">
           <div className="max-w-5xl mx-auto px-4 py-12 md:py-16">
             <div className="mb-8 flex items-baseline justify-between gap-4">
-              <div>
+              <div className="cbi-section-intro">
                 <h2 className="cbi-title mb-2 text-2xl font-bold">Prestataires par catégorie</h2>
                 <p className="cbi-copy text-sm">
                   Un répertoire simple à compléter par famille de besoin.

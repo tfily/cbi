@@ -49,6 +49,20 @@ body {
     color: var(--cbi-text-muted);
   }
 
+  .cbi-section-intro {
+    max-width: 40rem;
+  }
+
+  .cbi-inline-link {
+    color: #7f6740;
+    font-weight: 600;
+    transition: color 150ms ease;
+  }
+
+  .cbi-inline-link:hover {
+    color: var(--cbi-text-main);
+  }
+
   .cbi-cta-primary {
     align-items: center;
     border-radius: 9999px;
@@ -96,7 +110,7 @@ body {
     background: rgba(255, 253, 248, 0.92);
     border: 1px solid var(--cbi-border);
     border-radius: 1rem;
-    box-shadow: 0 16px 40px rgba(31, 27, 23, 0.06);
+    box-shadow: 0 14px 32px rgba(31, 27, 23, 0.05);
   }
 
   .cbi-card-soft {
