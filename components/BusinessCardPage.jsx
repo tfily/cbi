@@ -2,6 +2,7 @@ import Image from "next/image";
 import {
   BUSINESS_CARD_CONTACT,
   BUSINESS_CARD_SERVICES,
+  BUSINESS_CARD_TRUST_POINTS,
   getBusinessCardAddressLabel,
   getBusinessCardMapsUrl,
   getBusinessCardQrCodeUrl,
@@ -236,7 +237,7 @@ export default function BusinessCardPage() {
           <div className="absolute left-[-2rem] top-24 h-24 w-24 rounded-full border border-[#ebd9ba] bg-white/35" />
         </div>
         <div className="relative mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-12">
-          <div className="grid gap-6">
+          <div className="grid gap-6 lg:grid-cols-[1.18fr_0.82fr]">
             <div className="rounded-[2rem] border border-[#e4d2b2] bg-white/88 p-5 shadow-[0_24px_60px_rgba(55,40,17,0.08)] backdrop-blur-[2px] md:p-8">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-4">
@@ -332,6 +333,23 @@ export default function BusinessCardPage() {
               </div>
             </div>
 
+            <aside className="flex flex-col gap-4">
+              <div className="rounded-[2rem] border border-[#e4d2b2] bg-white/92 p-5 shadow-[0_18px_45px_rgba(55,40,17,0.08)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8d6b43]">
+                  Bloc confiance
+                </p>
+                <div className="mt-4 grid gap-3">
+                  {BUSINESS_CARD_TRUST_POINTS.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-2xl border border-[#eedfca] bg-[#fffaf1] px-4 py-3 text-sm font-medium text-neutral-800"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
