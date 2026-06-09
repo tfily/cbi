@@ -80,7 +80,9 @@ function getDefaultPackModeFromLabels(packLabels) {
 }
 
 function pickSignatureSubscriptionSlug(subscriptions) {
-  const items = Array.isArray(subscriptions) ? subscriptions : [];
+  const items = (Array.isArray(subscriptions) ? subscriptions : []).filter(
+    (sub) => sub?.slug !== "offre-signature"
+  );
   if (!items.length) return "premium";
 
   const byPrice = items.find((sub) => {
@@ -279,13 +281,16 @@ export default async function HomePage({ searchParams }) {
   const visibleNews = (news || []).filter((item) => !isPlaceholderNewsItem(item));
   const providerCategories = getVisibleProviders();
   const signatureSubscriptionSlug = pickSignatureSubscriptionSlug(subscriptions);
+  const visibleSubscriptions = (subscriptions || []).filter(
+    (sub) => sub?.slug !== "offre-signature"
+  );
   const signatureOfferText =
-    getSignatureOfferText(subscriptions, signatureSubscriptionSlug) ||
+    getSignatureOfferText(visibleSubscriptions, signatureSubscriptionSlug) ||
     "Courses, déplacements, animaux, réservations : tout est pris en charge avec discrétion et efficacité.";
   const homeSchema = buildHomeSchema({
     siteInfo,
     services,
-    subscriptions,
+    subscriptions: visibleSubscriptions,
     signatureOfferText,
   });
   const featuredServiceLinks = getFeaturedServiceLinks(services);
@@ -382,7 +387,6 @@ export default async function HomePage({ searchParams }) {
         <div className="max-w-5xl mx-auto px-4 py-10 md:py-12">
           <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="cbi-card p-6 md:p-7">
-              <p className="cbi-kicker mb-3">Offre signature</p>
               <h2 className="cbi-title mb-3 max-w-md text-2xl font-bold md:text-3xl">
                 Un quotidien mieux orchestré
               </h2>
@@ -739,13 +743,13 @@ export default async function HomePage({ searchParams }) {
               Choisir la bonne formule
             </a>
           </div>
-          {subscriptions.length === 0 ? (
+          {visibleSubscriptions.length === 0 ? (
             <p className="text-sm text-neutral-500">
               Ajoutez des abonnements dans WordPress pour les afficher ici.
             </p>
           ) : (
             <div className="grid gap-5 md:grid-cols-3">
-              {subscriptions.map((sub, index) => {
+              {visibleSubscriptions.map((sub, index) => {
                 const highlight = index === 1;
                 return (
                   <div

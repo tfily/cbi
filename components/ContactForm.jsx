@@ -572,12 +572,14 @@ export default function ContactForm({ services = [], subscriptions = [] }) {
 
   const subscriptionOptions = useMemo(
     () =>
-      (subscriptions || []).map((sub) => ({
-        slug: sub.slug,
-        label: cleanHtml(sub.title?.rendered || ""),
-        priceLabel: sub.meta?.cbi_price || "",
-        priceMinor: parsePriceToMinor(sub.meta?.cbi_price),
-      })),
+      (subscriptions || [])
+        .filter((sub) => sub?.slug !== "offre-signature")
+        .map((sub) => ({
+          slug: sub.slug,
+          label: cleanHtml(sub.title?.rendered || ""),
+          priceLabel: sub.meta?.cbi_price || "",
+          priceMinor: parsePriceToMinor(sub.meta?.cbi_price),
+        })),
     [subscriptions]
   );
 

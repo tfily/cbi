@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   getSubscriptionBySlug,
   getSubscriptionSlugs,
@@ -24,11 +25,14 @@ function cleanHtml(str) {
 
 export async function generateStaticParams() {
   const slugs = await getSubscriptionSlugs().catch(() => []);
-  return slugs.map((slug) => ({ slug }));
+  return slugs
+    .filter((slug) => slug !== "offre-signature")
+    .map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
+  if (resolvedParams.slug === "offre-signature") return {};
   const sub = await getSubscriptionBySlug(resolvedParams.slug).catch(() => null);
   if (!sub) return {};
   const title = cleanHtml(sub.title?.rendered || "Abonnement");
@@ -48,6 +52,9 @@ export async function generateMetadata({ params }) {
 
 export default async function SubscriptionPage({ params }) {
   const resolvedParams = await params;
+  if (resolvedParams.slug === "offre-signature") {
+    notFound();
+  }
   const sub = await getSubscriptionBySlug(resolvedParams.slug).catch(() => null);
 
   if (!sub) {

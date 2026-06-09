@@ -29,12 +29,14 @@ export default async function sitemap() {
     priority: 0.8,
   }));
 
-  const subscriptionRoutes = (subscriptionSlugs || []).map((slug) => ({
-    url: `${baseUrl}/subscriptions/${slug}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+  const subscriptionRoutes = (subscriptionSlugs || [])
+    .filter((slug) => slug !== "offre-signature")
+    .map((slug) => ({
+      url: `${baseUrl}/subscriptions/${slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
 
   const posts = await Promise.all(
     (postSlugs || []).map(async (slug) => getPostBySlug(slug).catch(() => null))

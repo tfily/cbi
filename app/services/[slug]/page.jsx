@@ -209,6 +209,7 @@ export default async function ServicePage({ params }) {
     }))
     .filter((item) => item.slug && item.title);
   const highlightedSubscriptions = (subscriptions || [])
+    .filter((item) => item?.slug && item.slug !== "offre-signature")
     .slice(0, 2)
     .map((item) => ({
       slug: item.slug,

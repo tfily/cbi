@@ -335,10 +335,7 @@ export default function BusinessCardPage() {
 
             <aside className="flex flex-col gap-4">
               <div className="rounded-[2rem] border border-[#e4d2b2] bg-white/92 p-5 shadow-[0_18px_45px_rgba(55,40,17,0.08)]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8d6b43]">
-                  Bloc confiance
-                </p>
-                <div className="mt-4 grid gap-3">
+                <div className="grid gap-3">
                   {BUSINESS_CARD_TRUST_POINTS.map((item) => (
                     <div
                       key={item}
